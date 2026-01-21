@@ -1,0 +1,8 @@
+
+{
+  "name": "ActEarly",
+  "description": "A smart wellness companion for desk workers that subtly prompts strictly timed micro-exercises to prevent sedentary strain, powered by Gemini.",
+  "version": "2.0.0",
+  "module": "2",
+  "requestFramePermissions": []
+}
