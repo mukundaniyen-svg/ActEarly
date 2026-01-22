@@ -3,7 +3,7 @@ import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { Exercise, WisdomTip, ALL_BODY_PARTS } from "../types";
 import { EXERCISE_LIBRARY } from "./exerciseLibrary";
 
-const apiKey = process.env.API_KEY || '';
+const apiKey = import.meta.env.VITE_GEMINI_API_KEY || '';
 const ai = new GoogleGenAI({ apiKey });
 
 const wisdomSchema: Schema = {
