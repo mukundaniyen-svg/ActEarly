@@ -9,7 +9,12 @@ import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { Exercise, WisdomTip, ALL_BODY_PARTS } from "../types";
 import { EXERCISE_LIBRARY } from "./exerciseLibrary";
 
-const apiKey = import.meta.env.VITE_GEMINI_API_KEY || '';
+const apiKey = import.meta.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY || '';
+
+if (!apiKey) {
+  console.error('❌ CRITICAL: Gemini API key is not set. Set VITE_GEMINI_API_KEY in your .env.local file.');
+}
+
 const ai = new GoogleGenAI({ apiKey });
 
 const wisdomSchema: Schema = {
