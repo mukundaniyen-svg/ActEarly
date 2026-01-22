@@ -1,4 +1,10 @@
 
+console.log(
+  "GEMINI KEY AT RUNTIME:",
+  import.meta.env.VITE_GEMINI_API_KEY
+);
+
+
 import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { Exercise, WisdomTip, ALL_BODY_PARTS } from "../types";
 import { EXERCISE_LIBRARY } from "./exerciseLibrary";
