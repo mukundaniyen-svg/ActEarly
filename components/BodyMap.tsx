@@ -264,7 +264,7 @@ export const BodyMap: React.FC<BodyMapProps> = ({
               >
                 <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 <Sparkles className="w-4 h-4 animate-pulse text-yellow-300" />
-                <span>Full Body Reset</span>
+                <span>Full Body Reset (15 min)</span>
                 <Dumbbell className="w-4 h-4 opacity-70" />
               </button>
           </div>
