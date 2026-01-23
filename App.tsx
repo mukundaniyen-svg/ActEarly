@@ -568,8 +568,8 @@ const App: React.FC = () => {
         </button>
       </div>
 
-      <main className="w-full max-w-[90rem] px-4 flex flex-col justify-center min-h-screen py-8">
-         <div className="w-full grid grid-cols-1 lg:grid-cols-3 gap-4 items-start h-full">
+      <main className="w-full max-w-[90rem] px-4 flex flex-col justify-center min-h-screen py-12">
+         <div className="w-full grid grid-cols-1 lg:grid-cols-3 gap-6 items-start h-full">
             <div className="order-2 lg:order-1 h-full min-h-[500px]">
                {appState === AppState.IDLE && renderTimerCard()}
                {appState === AppState.NOTIFYING && renderNotifyingCard()}
