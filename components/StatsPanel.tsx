@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState, useMemo } from 'react';
 import { BodyPartHistory, ExerciseLogEntry, ALL_BODY_PARTS, WisdomTip } from '../types';
-import { generateHealthWisdom } from '../services/geminiService';
+import { generateHealthWisdom } from '../services/ai/aiClient';
 import { Trophy, TrendingUp, AlertCircle, Quote, Brain, Lightbulb, Zap, Activity, ChevronLeft, ChevronRight, Heart, Dumbbell, Flame } from 'lucide-react';
 
 interface StatsPanelProps {

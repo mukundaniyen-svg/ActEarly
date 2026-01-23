@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Settings as SettingsIcon, HeartPulse, RefreshCw, Zap, Pause, Play, Info, Building2, Home, BrainCircuit, Activity, Timer as TimerIcon } from 'lucide-react';
 import { AppState, Exercise, Settings, BodyPartHistory, ExerciseLogEntry, ALL_BODY_PARTS } from './types';
-import { generateSession } from './services/geminiService';
+import { generateSession } from './services/ai/aiClient';
 import { EdgeGlow } from './components/EdgeGlow';
 import { ExerciseCard } from './components/ExerciseCard';
 import { SettingsModal } from './components/SettingsModal';
