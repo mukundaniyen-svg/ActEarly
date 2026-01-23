@@ -1,54 +1,6 @@
-import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { Exercise, WisdomTip, ALL_BODY_PARTS } from "../../types";
 import { EXERCISE_LIBRARY } from "../exerciseLibrary";
-
-/**
- * CENTRALIZED GEMINI AI CLIENT
- * 
- * All GoogleGenerativeAI usage is isolated here.
- * React components should only import and call the async functions below,
- * never directly instantiate GoogleGenAI or call generateContent.
- */
-
-// ============================================================================
-// SCHEMAS
-// ============================================================================
-
-const wisdomSchema: Schema = {
-  type: Type.ARRAY,
-  items: {
-    type: Type.OBJECT,
-    properties: {
-      category: {
-        type: Type.STRING,
-        enum: ['Science', 'Motivation', 'Hack', 'Quote', 'Trivia', 'Benefit'],
-      },
-      text: {
-        type: Type.STRING,
-      },
-    },
-    required: ["category", "text"],
-  },
-};
-
-const exerciseListSchema: Schema = {
-  type: Type.ARRAY,
-  items: {
-    type: Type.OBJECT,
-    properties: {
-      name: { type: Type.STRING },
-      durationSeconds: { type: Type.NUMBER },
-      instructions: { type: Type.ARRAY, items: { type: Type.STRING } },
-      benefits: { type: Type.STRING },
-      prevention: { type: Type.STRING },
-      category: { type: Type.STRING, enum: [...ALL_BODY_PARTS, "General"] },
-      posture: { type: Type.STRING, enum: ["Seated", "Standing"] },
-      isStandingRecommended: { type: Type.BOOLEAN },
-      environmentCompatibility: { type: Type.STRING, enum: ["Office", "Home", "Both"] }
-    },
-    required: ["name", "durationSeconds", "instructions", "category", "posture", "environmentCompatibility"],
-  },
-};
+import { callAI } from "../../src/api/backendClient";
 
 // ============================================================================
 // FALLBACK DATA
@@ -70,33 +22,18 @@ const FALLBACK_WISDOM: WisdomTip[] = [
 // ============================================================================
 
 /**
- * Generate health wisdom tips via Gemini AI.
+ * Generate health wisdom tips via backend AI.
  * Falls back to hardcoded tips if API unavailable.
  */
 export const generateHealthWisdom = async (customInstructions: string = ''): Promise<WisdomTip[]> => {
   try {
-    const apiKey = import.meta.env.VITE_GEMINI_API_KEY || '';
-    if (!apiKey) {
-      console.warn('Gemini API key not available, using fallback wisdom');
-      return FALLBACK_WISDOM;
-    }
-
-    const ai = new GoogleGenAI({ apiKey });
     const contextStr = customInstructions ? `User Context: "${customInstructions}".` : '';
+    const prompt = `Generate 10 desk health tips. ${contextStr}`;
     
-    const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
-      contents: `Generate 10 desk health tips. ${contextStr}`,
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: wisdomSchema,
-        temperature: 0.1,
-        thinkingConfig: { thinkingBudget: 0 }
-      },
-    });
-
-    if (response.text) {
-      return JSON.parse(response.text) as WisdomTip[];
+    const result = await callAI('health_wisdom', { prompt });
+    
+    if (result.data?.text) {
+      return JSON.parse(result.data.text) as WisdomTip[];
     }
     return FALLBACK_WISDOM;
   } catch (error) {
@@ -106,7 +43,7 @@ export const generateHealthWisdom = async (customInstructions: string = ''): Pro
 };
 
 /**
- * Generate a personalized exercise session via Gemini AI.
+ * Generate a personalized exercise session via backend AI.
  * Uses custom instructions if provided, otherwise falls back to local library selection logic.
  */
 export const generateSession = async (
@@ -119,37 +56,22 @@ export const generateSession = async (
   // Try AI generation if custom instructions are provided
   if (customInstructions.trim().length > 0) {
     try {
-      const apiKey = import.meta.env.VITE_GEMINI_API_KEY || '';
-      if (!apiKey) {
-        console.warn('Gemini API key not available for custom instruction generation, using local library');
-      } else {
-        const ai = new GoogleGenAI({ apiKey });
-        const prompt = `Generate ${durationMinutes} unique micro-exercises (60 seconds each). 
+      const prompt = `Generate ${durationMinutes} unique micro-exercises (60 seconds each). 
 User Instructions: "${customInstructions}". 
 Environment: ${workEnvironment}. 
 Do NOT generate exercises from: ${excludeNames.length > 0 ? excludeNames.join(", ") : "none"}.
 Return exercises that directly address the user's specific needs.`;
 
-        console.log('Generating customized exercises with prompt:', prompt);
-        
-        const response = await ai.models.generateContent({
-          model: "gemini-3-flash-preview",
-          contents: prompt,
-          config: {
-            responseMimeType: "application/json",
-            responseSchema: exerciseListSchema,
-            temperature: 0.1,
-            thinkingConfig: { thinkingBudget: 0 }
-          },
-        });
+      console.log('Generating customized exercises with prompt:', prompt);
+      
+      const result = await callAI('generate_session', { prompt });
 
-        if (response.text) {
-          const generated = JSON.parse(response.text) as Exercise[];
-          console.log('Generated exercises:', generated);
-          if (generated.length > 0) {
-            console.log(`Successfully generated ${generated.length} customized exercises`);
-            return generated;
-          }
+      if (result.data?.text) {
+        const generated = JSON.parse(result.data.text) as Exercise[];
+        console.log('Generated exercises:', generated);
+        if (generated.length > 0) {
+          console.log(`Successfully generated ${generated.length} customized exercises`);
+          return generated;
         }
       }
     } catch (error) {
