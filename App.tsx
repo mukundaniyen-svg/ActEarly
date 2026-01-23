@@ -74,7 +74,8 @@ const App: React.FC = () => {
     sessionDurationMinutes: 5, 
     prioritizedBodyParts: [],
     workEnvironment: 'Office',
-    theme: 'Light'
+    theme: 'Light',
+    customInstructions: ''
   });
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   
@@ -167,16 +168,18 @@ const App: React.FC = () => {
       settings.sessionDurationMinutes || 3, 
       priorities,
       settings.workEnvironment,
-      excludes 
+      excludes,
+      settings.customInstructions 
     );
     setPendingSessionPromise(promise);
-  }, [settings.sessionDurationMinutes, settings.workEnvironment, getExcludedExerciseNames, getSmartPriorities]);
+  }, [settings.sessionDurationMinutes, settings.workEnvironment, settings.customInstructions, getExcludedExerciseNames, getSmartPriorities]);
 
   useEffect(() => {
+    // Increased pre-fetch window to 30s to hide API latency
     if (
       appState === AppState.IDLE && 
       !isPaused && 
-      secondsUntilNext <= 10 && 
+      secondsUntilNext <= 30 && 
       !pendingSessionPromise
     ) {
       triggerSessionGeneration();
@@ -223,23 +226,34 @@ const App: React.FC = () => {
 
   const handleStartSession = async () => {
     completedExercisesRef.current = [];
-    setAppState(AppState.FETCHING);
     
-    try {
-      let exercises;
-      if (pendingSessionPromise) {
-        exercises = await pendingSessionPromise;
-      } else {
-        const excludes = getExcludedExerciseNames();
-        const priorities = getSmartPriorities();
-        exercises = await generateSession(
-            settings.sessionDurationMinutes || 3, 
-            priorities,
-            settings.workEnvironment,
-            excludes
-        );
+    // Check if we already have the session ready from pre-fetch
+    if (pendingSessionPromise) {
+      setAppState(AppState.FETCHING);
+      try {
+        const exercises = await pendingSessionPromise;
+        setExerciseQueue(exercises);
+        setCurrentExerciseIndex(0);
+        setAppState(AppState.ACTIVE);
+        setPendingSessionPromise(null);
+        return;
+      } catch (e) {
+        setPendingSessionPromise(null);
       }
-      
+    }
+
+    // Otherwise, generate it now
+    setAppState(AppState.FETCHING);
+    try {
+      const excludes = getExcludedExerciseNames();
+      const priorities = getSmartPriorities();
+      const exercises = await generateSession(
+          settings.sessionDurationMinutes || 3, 
+          priorities,
+          settings.workEnvironment,
+          excludes,
+          settings.customInstructions
+      );
       setExerciseQueue(exercises);
       setCurrentExerciseIndex(0);
       setAppState(AppState.ACTIVE);
@@ -247,8 +261,6 @@ const App: React.FC = () => {
       console.error("Failed to load session", error);
       setAppState(AppState.IDLE);
       setSecondsUntilNext(settings.intervalSeconds);
-    } finally {
-      setPendingSessionPromise(null);
     }
   };
 
@@ -261,7 +273,8 @@ const App: React.FC = () => {
         settings.sessionDurationMinutes || 3,
         [category], 
         settings.workEnvironment,
-        excludes
+        excludes,
+        settings.customInstructions
       );
       setExerciseQueue(exercises);
       setCurrentExerciseIndex(0);

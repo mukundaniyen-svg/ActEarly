@@ -20,6 +20,7 @@ export interface Settings {
   prioritizedBodyParts: string[]; 
   workEnvironment: 'Office' | 'Home'; 
   theme: 'Dark' | 'Light'; 
+  customInstructions: string; // New field for user customization
 }
 
 export enum AppState {

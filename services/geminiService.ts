@@ -1,21 +1,7 @@
 
-console.log(
-  "GEMINI KEY AT RUNTIME:",
-  import.meta.env.VITE_GEMINI_API_KEY
-);
-
-
 import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { Exercise, WisdomTip, ALL_BODY_PARTS } from "../types";
 import { EXERCISE_LIBRARY } from "./exerciseLibrary";
-
-const apiKey = import.meta.env.VITE_GEMINI_API_KEY || '';
-
-if (!apiKey) {
-  console.error('❌ CRITICAL: Gemini API key is not set. Set VITE_GEMINI_API_KEY in your .env.local or Vercel environment variables.');
-}
-
-const ai = new GoogleGenAI({ apiKey });
 
 const wisdomSchema: Schema = {
   type: Type.ARRAY,
@@ -34,26 +20,48 @@ const wisdomSchema: Schema = {
   },
 };
 
-export const generateHealthWisdom = async (): Promise<WisdomTip[]> => {
+const exerciseListSchema: Schema = {
+  type: Type.ARRAY,
+  items: {
+    type: Type.OBJECT,
+    properties: {
+      name: { type: Type.STRING },
+      durationSeconds: { type: Type.NUMBER },
+      instructions: { type: Type.ARRAY, items: { type: Type.STRING } },
+      benefits: { type: Type.STRING },
+      prevention: { type: Type.STRING },
+      category: { type: Type.STRING, enum: [...ALL_BODY_PARTS, "General"] },
+      posture: { type: Type.STRING, enum: ["Seated", "Standing"] },
+      isStandingRecommended: { type: Type.BOOLEAN },
+      environmentCompatibility: { type: Type.STRING, enum: ["Office", "Home", "Both"] }
+    },
+    required: ["name", "durationSeconds", "instructions", "category", "posture", "environmentCompatibility"],
+  },
+};
+
+export const generateHealthWisdom = async (customInstructions: string = ''): Promise<WisdomTip[]> => {
   const fallbacks: WisdomTip[] = [
     { category: 'Science', text: 'Sitting for 6+ hours drops leg blood flow by 50%.' },
     { category: 'Motivation', text: 'A 2-minute stretch resets your focus timer.' },
-    { category: 'Benefit', text: 'Your Ergo Score is protecting your long-term mobility.' },
+    { category: 'Benefit', text: 'Your Ergo Score protects long-term mobility.' },
     { category: 'Quote', text: 'Take rest; a field that has rested gives a bountiful crop.' },
     { category: 'Trivia', text: 'Blinking slows by 66% when looking at screens.' },
     { category: 'Science', text: 'Static posture is harder on the spine than movement.' },
-    { category: 'Hack', text: 'Place your monitor at eye level to reduce neck strain by 40%.' },
+    { category: 'Hack', text: 'Monitor at eye level reduces neck strain by 40%.' },
     { category: 'Quote', text: 'Motion is lotion for the joints.' }
   ];
 
   try {
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+    const contextStr = customInstructions ? `User Context: "${customInstructions}".` : '';
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: `Generate 10 diverse desk worker health tips in categories Science, Motivation, Hack, Quote, Trivia, Benefit.`,
+      model: "gemini-3-flash-preview",
+      contents: `Generate 10 desk health tips. ${contextStr}`,
       config: {
         responseMimeType: "application/json",
         responseSchema: wisdomSchema,
-        temperature: 0.85,
+        temperature: 0.1,
+        thinkingConfig: { thinkingBudget: 0 }
       },
     });
 
@@ -62,7 +70,6 @@ export const generateHealthWisdom = async (): Promise<WisdomTip[]> => {
     }
     return fallbacks;
   } catch (error) {
-    console.error("Gemini Wisdom Error (using fallbacks):", error);
     return fallbacks;
   }
 };
@@ -75,29 +82,47 @@ export const generateSession = async (
   durationMinutes: number = 3, 
   prioritizedBodyParts: string[] = [],
   workEnvironment: 'Office' | 'Home' = 'Office',
-  excludeNames: string[] = []
+  excludeNames: string[] = [],
+  customInstructions: string = ''
 ): Promise<Exercise[]> => {
-  // Simulate a very short "thinking" delay for UI feedback consistency
-  await new Promise(resolve => setTimeout(resolve, 400));
+  
+  if (customInstructions.trim().length > 0) {
+    try {
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+      const prompt = `Generate ${durationMinutes} micro-exercises (1m each). Needs: "${customInstructions}". Env: ${workEnvironment}. Exclude: ${excludeNames.join(",")}`;
+      
+      const response = await ai.models.generateContent({
+        model: "gemini-3-flash-preview",
+        contents: prompt,
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: exerciseListSchema,
+          temperature: 0.1,
+          thinkingConfig: { thinkingBudget: 0 }
+        },
+      });
 
-  // 1. Filter library by environment compatibility
+      if (response.text) {
+        const generated = JSON.parse(response.text) as Exercise[];
+        if (generated.length > 0) return generated;
+      }
+    } catch (error) {
+      console.error("AI Generation failed, falling back to local library.");
+    }
+  }
+
+  // FALLBACK: LOCAL LIBRARY LOGIC
   let filtered = EXERCISE_LIBRARY.filter(ex => 
     ex.environmentCompatibility === 'Both' || 
     ex.environmentCompatibility === workEnvironment
   );
 
-  // 2. Filter out recently done exercises
   if (excludeNames.length > 0) {
     const freshOnes = filtered.filter(ex => !excludeNames.includes(ex.name));
-    if (freshOnes.length >= durationMinutes) {
-      filtered = freshOnes;
-    }
+    if (freshOnes.length >= durationMinutes) filtered = freshOnes;
   }
 
-  // 3. Selection Logic
-  const session: Exercise[] = [];
-  const partsToFocus = prioritizedBodyParts.length > 0 ? prioritizedBodyParts : [...ALL_BODY_PARTS];
-  const shuffledParts = [...partsToFocus].sort(() => Math.random() - 0.5);
+  const partsToFocus = [...(prioritizedBodyParts.length > 0 ? prioritizedBodyParts : ALL_BODY_PARTS)];
 
   // 4. standing requirement logic for Office
   let standingCount = 0;

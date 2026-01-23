@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Settings as SettingsType } from '../types';
-import { X, Clock, Bell, Zap, Timer, CheckCircle2, Circle, Sun, Moon, Code, Building2, Home, Sparkles } from 'lucide-react';
+import { X, Clock, Bell, Zap, Timer, CheckCircle2, Circle, Sun, Moon, Code, Building2, Home, Sparkles, MessageSquareQuote } from 'lucide-react';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -162,6 +162,22 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, s
             <p className="text-xs text-slate-500 mt-2">
               We'll generate {settings.sessionDurationMinutes || 3} one-minute exercises per session.
             </p>
+          </div>
+
+          {/* Personalized Customization (Optional) */}
+          <div>
+             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-2">
+               <MessageSquareQuote className="w-4 h-4 text-teal-600 dark:text-teal-400" /> Personalized Profile (Optional)
+             </label>
+             <textarea 
+               value={settings.customInstructions}
+               onChange={(e) => onSave({ ...settings, customInstructions: e.target.value })}
+               className="w-full h-24 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-4 py-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500 transition-colors resize-none placeholder:italic placeholder:text-slate-400 dark:placeholder:text-slate-600"
+               placeholder="e.g. I have a lower back injury, I prefer standing exercises, I use dual monitors so focus on eye strain, I'm a programmer..."
+             />
+             <p className="text-[10px] text-slate-500 mt-2 italic leading-relaxed">
+               Your specifics help the AI tailor your health wisdom and exercise prioritization.
+             </p>
           </div>
 
           {/* Body Focus Priority */}
