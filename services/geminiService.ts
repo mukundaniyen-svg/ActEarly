@@ -123,6 +123,8 @@ export const generateSession = async (
   }
 
   const partsToFocus = [...(prioritizedBodyParts.length > 0 ? prioritizedBodyParts : ALL_BODY_PARTS)];
+  const session: Exercise[] = [];
+  const shuffledParts = [...partsToFocus].sort(() => Math.random() - 0.5);
 
   // 4. standing requirement logic for Office
   let standingCount = 0;
