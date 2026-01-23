@@ -52,7 +52,12 @@ export const generateHealthWisdom = async (customInstructions: string = ''): Pro
   ];
 
   try {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+    const apiKey = import.meta.env.VITE_GEMINI_API_KEY || '';
+    if (!apiKey) {
+      console.warn('Gemini API key not available, using fallback wisdom');
+      return fallbacks;
+    }
+    const ai = new GoogleGenAI({ apiKey });
     const contextStr = customInstructions ? `User Context: "${customInstructions}".` : '';
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
@@ -70,6 +75,7 @@ export const generateHealthWisdom = async (customInstructions: string = ''): Pro
     }
     return fallbacks;
   } catch (error) {
+    console.warn('Health wisdom generation failed, using fallbacks:', error);
     return fallbacks;
   }
 };
@@ -88,26 +94,40 @@ export const generateSession = async (
   
   if (customInstructions.trim().length > 0) {
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
-      const prompt = `Generate ${durationMinutes} micro-exercises (1m each). Needs: "${customInstructions}". Env: ${workEnvironment}. Exclude: ${excludeNames.join(",")}`;
-      
-      const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: prompt,
-        config: {
-          responseMimeType: "application/json",
-          responseSchema: exerciseListSchema,
-          temperature: 0.1,
-          thinkingConfig: { thinkingBudget: 0 }
-        },
-      });
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY || '';
+      if (!apiKey) {
+        console.warn('Gemini API key not available for custom instruction generation, using local library');
+      } else {
+        const ai = new GoogleGenAI({ apiKey });
+        const prompt = `Generate ${durationMinutes} unique micro-exercises (60 seconds each). 
+User Instructions: "${customInstructions}". 
+Environment: ${workEnvironment}. 
+Do NOT generate exercises from: ${excludeNames.length > 0 ? excludeNames.join(", ") : "none"}.
+Return exercises that directly address the user's specific needs.`;
+        
+        console.log('Generating customized exercises with prompt:', prompt);
+        const response = await ai.models.generateContent({
+          model: "gemini-3-flash-preview",
+          contents: prompt,
+          config: {
+            responseMimeType: "application/json",
+            responseSchema: exerciseListSchema,
+            temperature: 0.1,
+            thinkingConfig: { thinkingBudget: 0 }
+          },
+        });
 
-      if (response.text) {
-        const generated = JSON.parse(response.text) as Exercise[];
-        if (generated.length > 0) return generated;
+        if (response.text) {
+          const generated = JSON.parse(response.text) as Exercise[];
+          console.log('Generated exercises:', generated);
+          if (generated.length > 0) {
+            console.log(`Successfully generated ${generated.length} customized exercises`);
+            return generated;
+          }
+        }
       }
     } catch (error) {
-      console.error("AI Generation failed, falling back to local library.");
+      console.error("AI Generation failed, falling back to local library:", error);
     }
   }
 
