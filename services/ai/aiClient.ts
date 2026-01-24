@@ -24,8 +24,9 @@ const FALLBACK_WISDOM: WisdomTip[] = [
 /**
  * Generate health wisdom tips via backend AI.
  * Falls back to hardcoded tips if API unavailable.
+ * Returns both tips and AI availability status.
  */
-export const generateHealthWisdom = async (customInstructions: string = ''): Promise<WisdomTip[]> => {
+export const generateHealthWisdom = async (customInstructions: string = ''): Promise<{ tips: WisdomTip[], aiAvailable: boolean }> => {
   try {
     const contextStr = customInstructions ? `User Context: "${customInstructions}".` : '';
     const prompt = `Generate 10 desk health tips. ${contextStr}`;
@@ -33,18 +34,31 @@ export const generateHealthWisdom = async (customInstructions: string = ''): Pro
     const result = await callAI('health_wisdom', { prompt });
     
     if (result.data?.text) {
-      return JSON.parse(result.data.text) as WisdomTip[];
+      const responseText = result.data.text.trim();
+      const aiAvailable = !responseText.includes('AI temporarily unavailable');
+      
+      if (responseText.startsWith('{') || responseText.startsWith('[')) {
+        try {
+          const tips = JSON.parse(responseText) as WisdomTip[];
+          return { tips, aiAvailable };
+        } catch (parseError) {
+          // If JSON parse fails, treat as unavailable and fall through
+        }
+      }
+      
+      return { tips: FALLBACK_WISDOM, aiAvailable: false };
     }
-    return FALLBACK_WISDOM;
+    return { tips: FALLBACK_WISDOM, aiAvailable: true };
   } catch (error) {
     console.warn('Health wisdom generation failed, using fallbacks:', error);
-    return FALLBACK_WISDOM;
+    return { tips: FALLBACK_WISDOM, aiAvailable: true };
   }
 };
 
 /**
  * Generate a personalized exercise session via backend AI.
  * Uses custom instructions if provided, otherwise falls back to local library selection logic.
+ * Returns both exercises and AI availability status.
  */
 export const generateSession = async (
   durationMinutes: number = 3,
@@ -52,7 +66,7 @@ export const generateSession = async (
   workEnvironment: 'Office' | 'Home' = 'Office',
   excludeNames: string[] = [],
   customInstructions: string = ''
-): Promise<Exercise[]> => {
+): Promise<{ exercises: Exercise[], aiAvailable: boolean }> => {
   // Try AI generation if custom instructions are provided
   if (customInstructions.trim().length > 0) {
     try {
@@ -67,20 +81,33 @@ Return exercises that directly address the user's specific needs.`;
       const result = await callAI('generate_session', { prompt });
 
       if (result.data?.text) {
-        const generated = JSON.parse(result.data.text) as Exercise[];
-        console.log('Generated exercises:', generated);
-        if (generated.length > 0) {
-          console.log(`Successfully generated ${generated.length} customized exercises`);
-          return generated;
+        const responseText = result.data.text.trim();
+        const aiAvailable = !responseText.includes('AI temporarily unavailable');
+        
+        if (responseText.startsWith('{') || responseText.startsWith('[')) {
+          try {
+            const generated = JSON.parse(responseText) as Exercise[];
+            console.log('Generated exercises:', generated);
+            if (generated.length > 0) {
+              console.log(`Successfully generated ${generated.length} customized exercises`);
+              return { exercises: generated, aiAvailable };
+            }
+          } catch (parseError) {
+            // If JSON parse fails, treat as unavailable and fall through
+          }
         }
+        
+        return { exercises: generateLocalSession(durationMinutes, prioritizedBodyParts, workEnvironment, excludeNames), aiAvailable: false };
       }
     } catch (error) {
       console.error("AI Generation failed, falling back to local library:", error);
+      // Return fallback with AI marked as unavailable when custom instructions were provided
+      return { exercises: generateLocalSession(durationMinutes, prioritizedBodyParts, workEnvironment, excludeNames), aiAvailable: false };
     }
   }
 
   // FALLBACK: LOCAL LIBRARY SELECTION LOGIC
-  return generateLocalSession(durationMinutes, prioritizedBodyParts, workEnvironment, excludeNames);
+  return { exercises: generateLocalSession(durationMinutes, prioritizedBodyParts, workEnvironment, excludeNames), aiAvailable: true };
 };
 
 // ============================================================================

@@ -12,6 +12,7 @@ interface StatsPanelProps {
 export const StatsPanel: React.FC<StatsPanelProps> = ({ history, exerciseLog }) => {
   const [tips, setTips] = useState<WisdomTip[]>([]);
   const [loadingTips, setLoadingTips] = useState(true);
+  const [aiAvailable, setAiAvailable] = useState(true);
   
   // Carousel State
   const [currentTipIndex, setCurrentTipIndex] = useState(0);
@@ -102,9 +103,10 @@ export const StatsPanel: React.FC<StatsPanelProps> = ({ history, exerciseLog }) 
   useEffect(() => {
     let mounted = true;
     const fetchTips = async () => {
-      const data = await generateHealthWisdom();
+      const result = await generateHealthWisdom();
       if (mounted) {
-        setTips(data);
+        setTips(result.tips);
+        setAiAvailable(result.aiAvailable);
         setLoadingTips(false);
       }
     };
@@ -289,6 +291,12 @@ export const StatsPanel: React.FC<StatsPanelProps> = ({ history, exerciseLog }) 
         <h3 className="text-[10px] font-bold uppercase text-slate-400 dark:text-slate-500 mb-2 tracking-widest flex items-center gap-2">
           <Lightbulb className="w-3 h-3" /> Daily Wisdom
         </h3>
+        
+        {!aiAvailable && (
+          <div className="mb-2 px-3 py-2 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-700/30 rounded-lg text-[11px] text-amber-800 dark:text-amber-300">
+            Advanced personalization is temporarily unavailable. Showing best matching standard exercises.
+          </div>
+        )}
         
         <div 
           className="relative group w-full flex-1 min-h-[140px]" 

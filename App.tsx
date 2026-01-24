@@ -48,6 +48,7 @@ const App: React.FC = () => {
   // Exercise Session State
   const [exerciseQueue, setExerciseQueue] = useState<Exercise[]>([]);
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
+  const [sessionAiAvailable, setSessionAiAvailable] = useState(true);
   
   // Track which exercises were completed (not skipped) during current session for batch update
   const completedExercisesRef = useRef<Exercise[]>([]);
@@ -231,8 +232,9 @@ const App: React.FC = () => {
     if (pendingSessionPromise) {
       setAppState(AppState.FETCHING);
       try {
-        const exercises = await pendingSessionPromise;
-        setExerciseQueue(exercises);
+        const result = await pendingSessionPromise;
+        setExerciseQueue(result.exercises);
+        setSessionAiAvailable(result.aiAvailable);
         setCurrentExerciseIndex(0);
         setAppState(AppState.ACTIVE);
         setPendingSessionPromise(null);
@@ -247,14 +249,15 @@ const App: React.FC = () => {
     try {
       const excludes = getExcludedExerciseNames();
       const priorities = getSmartPriorities();
-      const exercises = await generateSession(
+      const result = await generateSession(
           settings.sessionDurationMinutes || 3, 
           priorities,
           settings.workEnvironment,
           excludes,
           settings.customInstructions
       );
-      setExerciseQueue(exercises);
+      setExerciseQueue(result.exercises);
+      setSessionAiAvailable(result.aiAvailable);
       setCurrentExerciseIndex(0);
       setAppState(AppState.ACTIVE);
     } catch (error) {
@@ -269,14 +272,15 @@ const App: React.FC = () => {
     setAppState(AppState.FETCHING);
     try {
       const excludes = getExcludedExerciseNames();
-      const exercises = await generateSession(
+      const result = await generateSession(
         settings.sessionDurationMinutes || 3,
         [category], 
         settings.workEnvironment,
         excludes,
         settings.customInstructions
       );
-      setExerciseQueue(exercises);
+      setExerciseQueue(result.exercises);
+      setSessionAiAvailable(result.aiAvailable);
       setCurrentExerciseIndex(0);
       setAppState(AppState.ACTIVE);
     } catch (e) {
@@ -290,13 +294,14 @@ const App: React.FC = () => {
     setAppState(AppState.FETCHING);
     try {
       const excludes = getExcludedExerciseNames();
-      const exercises = await generateSession(
+      const result = await generateSession(
         30,
         [...ALL_BODY_PARTS], 
         settings.workEnvironment,
         excludes
       );
-      setExerciseQueue(exercises);
+      setExerciseQueue(result.exercises);
+      setSessionAiAvailable(result.aiAvailable);
       setCurrentExerciseIndex(0);
       setAppState(AppState.ACTIVE);
     } catch (e) {
@@ -575,7 +580,12 @@ const App: React.FC = () => {
                {appState === AppState.NOTIFYING && renderNotifyingCard()}
                {appState === AppState.FETCHING && renderFetchingCard()}
                {appState === AppState.ACTIVE && exerciseQueue.length > 0 && (
-                   <div className="h-full w-full">
+                   <div className="h-full w-full flex flex-col gap-3">
+                       {!sessionAiAvailable && settings.customInstructions && (
+                         <div className="px-4 py-3 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-700/30 rounded-lg text-sm text-amber-800 dark:text-amber-300">
+                           Advanced personalization is temporarily unavailable. Showing best matching standard exercises.
+                         </div>
+                       )}
                        <ExerciseCard 
                           key={currentExerciseIndex} 
                           exercise={exerciseQueue[currentExerciseIndex]} 
