@@ -1,22 +1,18 @@
-/**
- * Backend API Client
- * Communicates with local backend at http://localhost:3000/api/ai
- */
+const BASE_URL =
+  import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
 
-export async function callAI(task: string, payload: any): Promise<any> {
-  const response = await fetch('http://localhost:3000/api/ai', {
-    method: 'POST',
+export async function callAI(task: string, payload: any) {
+  const response = await fetch(`${BASE_URL}/api/ai`, {
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json"
     },
-    body: JSON.stringify({ task, payload }),
+    body: JSON.stringify({ task, payload })
   });
 
-  const result = await response.json();
-
-  if (!result.ok) {
-    throw new Error(result.error || 'Backend AI request failed');
+  if (!response.ok) {
+    throw new Error("Backend request failed");
   }
 
-  return result;
+  return response.json();
 }
