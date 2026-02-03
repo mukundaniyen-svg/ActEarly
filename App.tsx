@@ -36,6 +36,7 @@ import { StatsPanel } from "./components/StatsPanel";
 /* LOGO                                                               */
 /* ------------------------------------------------------------------ */
 
+
 const ActEarlyLogo: React.FC<{ className?: string }> = ({ className = "w-6 h-6" }) => (
   <svg 
     viewBox="0 0 24 24" 
@@ -57,7 +58,14 @@ const ActEarlyLogo: React.FC<{ className?: string }> = ({ className = "w-6 h-6" 
 /* APP                                                                */
 /* ------------------------------------------------------------------ */
 
+const setFavicon = (href: string) => {
+  const link = document.getElementById("favicon") as HTMLLinkElement | null;
+  if (link) link.href = href;
+};
+
+
 function App() {
+  const originalTitleRef = useRef(document.title);
   const [settings, setSettings] = useState<Settings>(DEFAULT_PREFERENCES);
   const [appState, setAppState] = useState<AppState>(AppState.IDLE);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -127,6 +135,8 @@ function App() {
     setSecondsUntilNext(prev => {
       if (prev - delta <= 0) {
         setAppState(AppState.NOTIFYING);
+        document.title = "(1) ActEarly • Time to move";
+        setFavicon("/favicon-alert.png");
         if (settings.soundEnabled) new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3').play().catch(() => {});
         return 0;
       }
@@ -140,6 +150,8 @@ function App() {
   }, [tick]);
 
   const handleStartSession = async () => {
+    document.title = originalTitleRef.current;
+    setFavicon("/favicon-default.png");
     completedExercisesRef.current = [];
     setAppState(AppState.FETCHING);
     try {
@@ -302,9 +314,34 @@ function App() {
                     <p className="text-slate-500 mb-8 text-sm">Your focus session is complete.<br/>Time for a quick movement break.</p>
                     <button onClick={handleStartSession} className="w-full py-4 bg-teal-600 hover:bg-teal-500 text-white rounded-xl font-bold text-lg shadow-lg transition-transform active:scale-95">Start Session</button>
                     <div className="flex gap-3 w-full mt-4">
-                      <button onClick={() => { setAppState(AppState.IDLE); setSecondsUntilNext(300); }} className="flex-1 py-3 border border-slate-200 rounded-xl text-sm font-medium">Snooze 5m</button>
-                      <button onClick={() => { setAppState(AppState.IDLE); setSecondsUntilNext(settings.intervalSeconds); }} className="flex-1 py-3 border border-slate-200 rounded-xl text-sm font-medium">Dismiss</button>
-                    </div>
+                      <button
+  onClick={() => {
+  document.title = originalTitleRef.current;
+  setFavicon("/favicon-default.png");
+  setAppState(AppState.IDLE);
+  lastTickRef.current = Date.now();
+  setSecondsUntilNext(300);
+}}
+  className="flex-1 py-3 border border-slate-200 rounded-xl text-sm font-medium"
+>
+  Snooze 5m
+</button>
+
+<button
+  onClick={() => {
+  document.title = originalTitleRef.current;
+  setFavicon("/favicon-default.png");
+  setAppState(AppState.IDLE);
+  lastTickRef.current = Date.now();
+  setSecondsUntilNext(settings.intervalSeconds);
+}}
+
+  className="flex-1 py-3 border border-slate-200 rounded-xl text-sm font-medium"
+>
+  Dismiss
+</button>
+
+                      </div>
                  </div>
                )}
                {appState === AppState.FETCHING && (
@@ -314,14 +351,20 @@ function App() {
                  </div>
                )}
                {appState === AppState.ACTIVE && exerciseQueue.length > 0 && (
-                 <ExerciseCard 
-                    exercise={exerciseQueue[currentExerciseIndex]} 
-                    stepIndex={currentExerciseIndex}
-                    totalSteps={exerciseQueue.length}
-                    onNext={handleNextExercise} 
-                    onClose={() => setAppState(AppState.IDLE)} 
-                 />
-               )}
+                <ExerciseCard 
+                  exercise={exerciseQueue[currentExerciseIndex]} 
+                  stepIndex={currentExerciseIndex}
+                  totalSteps={exerciseQueue.length}
+                  onNext={handleNextExercise} 
+                  onClose={() => {
+                    document.title = originalTitleRef.current;
+                    setFavicon("/favicon-default.png"); // Resets to the original favicon
+                    setAppState(AppState.IDLE);
+                    lastTickRef.current = Date.now();
+                    setSecondsUntilNext(settings.intervalSeconds);
+    }}
+  />
+)}
             </div>
             
             {/* Column 2: Body Analysis */}
