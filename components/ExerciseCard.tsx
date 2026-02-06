@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Exercise } from '../types';
 import { Play, CheckCircle, Info, ShieldCheck, ChevronRight, X, SkipForward, Armchair, ArrowUp, AlertCircle, Volume2, VolumeX, Sparkles, Target } from 'lucide-react';
@@ -18,7 +17,10 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
   onNext, 
   onClose 
 }) => {
-  const duration = 60; 
+// 🔧 DEV ONLY: speed up exercises for testing
+const DEV_FAST_MODE = true; // ⛔ set to false before shipping
+const duration = DEV_FAST_MODE ? 3 : exercise.durationSeconds;
+
   
   const [timeLeft, setTimeLeft] = useState(duration);
   const [isActive, setIsActive] = useState(false);
@@ -66,11 +68,15 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
 
   const handleFinish = () => {
     window.speechSynthesis.cancel();
+    setIsActive(false);
+    setTimeLeft(duration);
     onNext(false, exercise);
   };
 
   const handleSkip = () => {
     window.speechSynthesis.cancel();
+    setIsActive(false);
+    setTimeLeft(duration);
     onNext(true, exercise);
   };
 
@@ -123,21 +129,27 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
 
         {/* Posture Recommendation */}
         <div className="flex flex-wrap items-center gap-2 mb-2">
-           <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-[10px] font-bold uppercase tracking-wide ${
-             exercise.posture === 'Standing' 
-               ? 'bg-amber-500/10 border-amber-500/50 text-amber-600 dark:text-amber-400' 
-               : 'bg-indigo-500/10 border-indigo-500/50 text-indigo-600 dark:text-indigo-400'
-           }`}>
-             {exercise.posture === 'Standing' ? <ArrowUp className="w-3 h-3" /> : <Armchair className="w-3 h-3" />}
-             {exercise.posture === 'Standing' ? "Stand Up" : "Seated"}
-           </div>
+          <div
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-[10px] font-bold uppercase tracking-wide ${
+              exercise.posture === 'Standing'
+                ? 'bg-amber-500/10 border-amber-500/50 text-amber-600 dark:text-amber-400'
+                : 'bg-indigo-500/10 border-indigo-500/50 text-indigo-600 dark:text-indigo-400'
+            }`}
+          >
+            {exercise.posture === 'Standing' ? (
+              <ArrowUp className="w-3 h-3" />
+            ) : (
+              <Armchair className="w-3 h-3" />
+            )}
+            {exercise.posture === 'Standing' ? 'Standing' : 'Desk-Friendly'}
+          </div>
 
-           {exercise.isStandingRecommended && (
-             <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-teal-500/30 bg-teal-500/10 text-teal-600 dark:text-teal-400 text-[10px] font-bold uppercase tracking-wide animate-pulse-slight shadow-sm">
-               <Sparkles className="w-3 h-3" />
-               Stand to Reset
-             </div>
-           )}
+          {exercise.isStandingRecommended && (
+            <div className="flex items-center gap-2 px-3 py-1.5 text-teal-600 dark:text-teal-400 text-[10px] font-bold italic tracking-wide">
+              <Sparkles className="w-3 h-3" />
+              Feel free to stand up whenever you can—it’s a great way to give your chair a break!
+            </div>
+          )}
         </div>
       </div>
 
@@ -150,8 +162,11 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
             </h3>
             <ul className="space-y-3">
               {exercise.instructions.map((step, idx) => (
-                <li key={idx} className="flex gap-3 text-slate-700 dark:text-slate-300 text-sm leading-relaxed transition-colors">
-                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 flex items-center justify-center text-[10px] font-bold mt-0.5">
+                <li
+                  key={idx}
+                  className="flex gap-4 text-slate-700 dark:text-slate-200 text-base md:text-lg leading-relaxed font-medium transition-colors"
+                >
+                  <span className="flex-shrink-0 w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 flex items-center justify-center text-xs font-bold mt-1">
                     {idx + 1}
                   </span>
                   <span>{step}</span>

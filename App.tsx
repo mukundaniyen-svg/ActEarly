@@ -21,7 +21,6 @@ import {
 } from "./types";
 
 import { generateSession } from "./services/ai/aiClient";
-// Corrected imports for your specific file structure
 import { loadPreferences, savePreferences } from "./src/api/utils/preferencesStorage";
 import { DEFAULT_PREFERENCES } from "./src/api/constants/defaultPreferences";
 
@@ -35,7 +34,6 @@ import { StatsPanel } from "./components/StatsPanel";
 /* ------------------------------------------------------------------ */
 /* LOGO                                                               */
 /* ------------------------------------------------------------------ */
-
 
 const ActEarlyLogo: React.FC<{ className?: string }> = ({ className = "w-6 h-6" }) => (
   <svg 
@@ -63,12 +61,12 @@ const setFavicon = (href: string) => {
   if (link) link.href = href;
 };
 
-
 function App() {
   const originalTitleRef = useRef(document.title);
   const [settings, setSettings] = useState<Settings>(DEFAULT_PREFERENCES);
   const [appState, setAppState] = useState<AppState>(AppState.IDLE);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const celebrationShownRef = useRef(false);
 
   // Persistence
   useEffect(() => {
@@ -91,7 +89,6 @@ function App() {
   const [exerciseLog, setExerciseLog] = useState<ExerciseLogEntry[]>([]);
   const [hydrationTimestamps, setHydrationTimestamps] = useState<number[]>([]);
   const [showCelebration, setShowCelebration] = useState(false);
-  const [pendingSessionPromise, setPendingSessionPromise] = useState<Promise<any> | null>(null);
 
   // Timer Engine
   const [secondsUntilNext, setSecondsUntilNext] = useState(settings.intervalSeconds);
@@ -119,9 +116,31 @@ function App() {
     return Array.from(new Set(exerciseLog.filter(e => e.timestamp > fortyEightHoursAgo).map(e => e.name)));
   }, [exerciseLog]);
 
+  /**
+   * SMART PRIORITIES: 
+   * Bubbles up parts that haven't been moved in a long time (Non-Green).
+   */
   const getSmartPriorities = useCallback(() => {
-    if (settings.prioritizedBodyParts?.length > 0) return settings.prioritizedBodyParts;
-    return [...ALL_BODY_PARTS].sort((a, b) => (history[a] || 0) - (history[b] || 0));
+    if (settings.prioritizedBodyParts?.length > 0) {
+      return settings.prioritizedBodyParts;
+    }
+
+    const neverDone: string[] = [];
+    const done: { part: string; lastTime: number }[] = [];
+
+    ALL_BODY_PARTS.forEach(part => {
+      const lastTime = history[part];
+      if (!lastTime) {
+        neverDone.push(part);
+      } else {
+        done.push({ part, lastTime });
+      }
+    });
+
+    // Sort "Done" items by timestamp ascending (Oldest/Coldest first)
+    done.sort((a, b) => a.lastTime - b.lastTime);
+    
+    return [...neverDone, ...done.map(d => d.part)];
   }, [settings.prioritizedBodyParts, history]);
 
   // Timer Tick
@@ -142,27 +161,40 @@ function App() {
       }
       return prev - delta;
     });
-  }, [appState, isPaused, settings.soundEnabled]);
+  }, [appState, isPaused, settings.soundEnabled, settings.intervalSeconds]);
 
   useEffect(() => {
     timerRef.current = window.setInterval(tick, 1000);
     return () => clearInterval(timerRef.current!);
   }, [tick]);
 
+  /**
+   * STANDARD SESSION (Timer trigger)
+   * Requests 5 minutes (~5 exercises)
+   */
   const handleStartSession = async () => {
     document.title = originalTitleRef.current;
     setFavicon("/favicon-default.png");
     completedExercisesRef.current = [];
     setAppState(AppState.FETCHING);
     try {
-      const result = await generateSession(
-        settings.sessionDurationMinutes || 3, 
-        getSmartPriorities(), 
-        settings.workEnvironment, 
-        getExcludedExerciseNames(), 
-        settings.customInstructions
-      );
-      setExerciseQueue(result.exercises);
+      const priorities = getSmartPriorities();
+
+// ✅ Only feed top priorities for short sessions
+const shortSessionPriorities = priorities.slice(0, 5);
+
+const result = await generateSession(
+  5,
+  shortSessionPriorities,
+  settings.workEnvironment,
+  getExcludedExerciseNames(),
+  settings.customInstructions
+);
+
+// Still cap to 5 exercises as safety
+setExerciseQueue(result.exercises.slice(0, 5));
+
+
       setCurrentExerciseIndex(0);
       setAppState(AppState.ACTIVE);
     } catch {
@@ -172,22 +204,37 @@ function App() {
   };
 
   const handleNextExercise = (skipped: boolean, exercise: Exercise) => {
-    if (!skipped) completedExercisesRef.current.push(exercise);
+    if (!skipped) {
+      completedExercisesRef.current.push(exercise);
+      setHistory(prev => ({
+        ...prev,
+        [exercise.category]: Date.now()
+      }));
+    }
+
     if (currentExerciseIndex < exerciseQueue.length - 1) {
       setCurrentExerciseIndex(p => p + 1);
-    } else {
-      const now = Date.now();
-      const newHistory = { ...history };
-      completedExercisesRef.current.forEach(ex => { newHistory[ex.category] = now; });
-      setHistory(newHistory);
-      setExerciseLog(prev => [...prev, ...completedExercisesRef.current.map(ex => ({ 
-        name: ex.name, 
-        category: ex.category, 
-        timestamp: now 
-      }))]);
-      setAppState(AppState.IDLE);
-      setSecondsUntilNext(settings.intervalSeconds);
+      return;
     }
+
+    const now = Date.now();
+    const newHistory = { ...history };
+    completedExercisesRef.current.forEach(ex => {
+      newHistory[ex.category] = now;
+    });
+    setHistory(newHistory);
+
+    setExerciseLog(prev => [
+      ...prev,
+      ...completedExercisesRef.current.map(ex => ({
+        name: ex.name,
+        category: ex.category,
+        timestamp: now
+      }))
+    ]);
+
+    setAppState(AppState.IDLE);
+    setSecondsUntilNext(settings.intervalSeconds);
   };
 
   /* -------------------- UI: TIMER CARD -------------------- */
@@ -201,7 +248,6 @@ function App() {
 
     return (
       <div className="flex flex-col items-center justify-between p-6 bg-white/60 dark:bg-slate-800/40 rounded-3xl border border-slate-200 dark:border-slate-700/50 backdrop-blur-sm h-full shadow-lg relative overflow-hidden">
-        {/* Environment Toggle Section */}
         <div className="w-full flex flex-col items-center mb-6">
           <span className="text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mb-4">
             WHERE ARE YOU WORKING?
@@ -233,7 +279,6 @@ function App() {
           </p>
         </div>
 
-        {/* Circular Timer Display */}
         <div className="relative w-56 h-56 flex items-center justify-center mb-4">
           <svg className="w-full h-full transform -rotate-90" viewBox="0 0 256 256">
             <circle cx="128" cy="128" r="110" className="stroke-slate-100 dark:stroke-slate-800" strokeWidth="10" fill="transparent"/>
@@ -262,13 +307,11 @@ function App() {
           </button>
         </div>
 
-        {/* Timer Titles */}
         <div className="text-center mb-6">
           <h2 className="text-2xl font-bold text-slate-800 dark:text-white mb-1">Smart Break Timer</h2>
           <p className="text-sm text-slate-500 dark:text-slate-400 italic">Focus deep. We'll prompt the reset.</p>
         </div>
 
-        {/* Bottom Actions */}
         <div className="flex flex-col items-center gap-4 w-full">
           <button onClick={() => setSecondsUntilNext(3600)} className="flex items-center gap-2 px-6 py-2.5 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-full text-xs font-extrabold uppercase tracking-widest border border-indigo-100 dark:border-indigo-500/20 hover:bg-indigo-100 transition-all">
             <BrainCircuit className="w-4 h-4" /> FOCUS (60M)
@@ -286,122 +329,153 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen w-full relative flex flex-col bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200">
-      <EdgeGlow active={settings.glowEnabled && appState === AppState.NOTIFYING} />
-      <Celebration show={showCelebration} onComplete={() => setShowCelebration(false)} />
+    <>
+      <Celebration 
+        show={showCelebration} 
+        onComplete={() => setShowCelebration(false)} 
+      />
 
-      {/* Header */}
-      <div className="w-full p-6 flex justify-between items-center z-40">
-        <div className="flex items-center gap-2">
-          <ActEarlyLogo className="w-7 h-7" />
-          <span className="font-bold text-xl tracking-tight">ActEarly</span>
+      <div className="min-h-screen w-full relative flex flex-col bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200">
+        <EdgeGlow active={settings.glowEnabled && appState === AppState.NOTIFYING} />
+        
+        {/* Header */}
+        <div className="w-full p-6 flex justify-between items-center z-40">
+          <div className="flex items-center gap-2">
+            <ActEarlyLogo className="w-7 h-7" />
+            <span className="font-bold text-xl tracking-tight">ActEarly</span>
+          </div>
+          <button onClick={() => setIsSettingsOpen(true)} className="p-2 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-lg transition-colors">
+            <SettingsIcon className="w-5 h-5 text-slate-400" />
+          </button>
         </div>
-        <button onClick={() => setIsSettingsOpen(true)} className="p-2 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-lg transition-colors">
-          <SettingsIcon className="w-5 h-5 text-slate-400" />
-        </button>
-      </div>
 
-      {/* Main Grid: items-stretch ensures equal height columns */}
-      <main className="flex-1 w-full max-w-[95rem] mx-auto px-4 pb-12">
-         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch min-h-[650px]">
-            {/* Column 1: Timer/Notifications */}
-            <div className="h-full">
-               {appState === AppState.IDLE && renderTimerCard()}
-               {appState === AppState.NOTIFYING && (
-                 <div className="flex flex-col items-center justify-center bg-white dark:bg-slate-800 p-8 rounded-3xl text-center h-full border border-teal-100 shadow-xl">
-                    <Zap className="w-16 h-16 text-teal-500 mb-6 animate-pulse" />
-                    <h2 className="text-3xl font-bold mb-3">Time to Refresh</h2>
-                    <p className="text-slate-500 mb-8 text-sm">Your focus session is complete.<br/>Time for a quick movement break.</p>
-                    <button onClick={handleStartSession} className="w-full py-4 bg-teal-600 hover:bg-teal-500 text-white rounded-xl font-bold text-lg shadow-lg transition-transform active:scale-95">Start Session</button>
-                    <div className="flex gap-3 w-full mt-4">
-                      <button
-  onClick={() => {
-  document.title = originalTitleRef.current;
-  setFavicon("/favicon-default.png");
-  setAppState(AppState.IDLE);
-  lastTickRef.current = Date.now();
-  setSecondsUntilNext(300);
-}}
-  className="flex-1 py-3 border border-slate-200 rounded-xl text-sm font-medium"
->
-  Snooze 5m
-</button>
+        {/* Main Grid */}
+        <main className="flex-1 w-full max-w-[95rem] mx-auto px-4 pb-12">
+           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch min-h-[650px]">
+              {/* Column 1: Timer/Notifications */}
+              <div className="h-full">
+                 {appState === AppState.IDLE && renderTimerCard()}
+                 {appState === AppState.NOTIFYING && (
+                   <div className="flex flex-col items-center justify-center bg-white dark:bg-slate-800 p-8 rounded-3xl text-center h-full border border-teal-100 shadow-xl">
+                      <Zap className="w-16 h-16 text-teal-500 mb-6 animate-pulse" />
+                      <h2 className="text-3xl font-bold mb-3">Time to Refresh</h2>
+                      <p className="text-slate-500 mb-8 text-sm">Your focus session is complete.<br/>Time for a quick movement break.</p>
+                      <button onClick={handleStartSession} className="w-full py-4 bg-teal-600 hover:bg-teal-500 text-white rounded-xl font-bold text-lg shadow-lg transition-transform active:scale-95">Start Session</button>
+                      <div className="flex gap-3 w-full mt-4">
+                        <button
+                          onClick={() => {
+                            document.title = originalTitleRef.current;
+                            setFavicon("/favicon-default.png");
+                            setAppState(AppState.IDLE);
+                            lastTickRef.current = Date.now();
+                            setSecondsUntilNext(300);
+                          }}
+                          className="flex-1 py-3 border border-slate-200 rounded-xl text-sm font-medium"
+                        >
+                          Snooze 5m
+                        </button>
 
-<button
-  onClick={() => {
-  document.title = originalTitleRef.current;
-  setFavicon("/favicon-default.png");
-  setAppState(AppState.IDLE);
-  lastTickRef.current = Date.now();
-  setSecondsUntilNext(settings.intervalSeconds);
-}}
-
-  className="flex-1 py-3 border border-slate-200 rounded-xl text-sm font-medium"
->
-  Dismiss
-</button>
-
+                        <button
+                          onClick={() => {
+                            document.title = originalTitleRef.current;
+                            setFavicon("/favicon-default.png");
+                            setAppState(AppState.IDLE);
+                            lastTickRef.current = Date.now();
+                            setSecondsUntilNext(settings.intervalSeconds);
+                          }}
+                          className="flex-1 py-3 border border-slate-200 rounded-xl text-sm font-medium"
+                        >
+                          Dismiss
+                        </button>
                       </div>
-                 </div>
-               )}
-               {appState === AppState.FETCHING && (
-                 <div className="flex flex-col items-center justify-center h-full bg-white/40 dark:bg-slate-800/40 rounded-3xl border border-dashed border-slate-300">
-                    <RefreshCw className="w-10 h-10 animate-spin text-teal-500 mb-4" />
-                    <p className="font-medium animate-pulse">Personalizing your session...</p>
-                 </div>
-               )}
-               {appState === AppState.ACTIVE && exerciseQueue.length > 0 && (
-                <ExerciseCard 
-                  exercise={exerciseQueue[currentExerciseIndex]} 
-                  stepIndex={currentExerciseIndex}
-                  totalSteps={exerciseQueue.length}
-                  onNext={handleNextExercise} 
-                  onClose={() => {
-                    document.title = originalTitleRef.current;
-                    setFavicon("/favicon-default.png"); // Resets to the original favicon
-                    setAppState(AppState.IDLE);
-                    lastTickRef.current = Date.now();
-                    setSecondsUntilNext(settings.intervalSeconds);
-    }}
-  />
-)}
-            </div>
-            
-            {/* Column 2: Body Analysis */}
-            <div className="h-full">
-               <BodyMap 
-                 history={history} 
-                 hydrationCount={hydrationCount}
-                 lastHydrationTime={lastHydrationTime}
-                 onLogHydration={() => setHydrationTimestamps(p => [...p, Date.now()])}
-                 onStartSession={async (cat) => {
-                    setAppState(AppState.FETCHING);
-                    const res = await generateSession(3, [cat], settings.workEnvironment, getExcludedExerciseNames());
-                    setExerciseQueue(res.exercises);
-                    setCurrentExerciseIndex(0);
-                    setAppState(AppState.ACTIVE);
-                 }}
-               />
-            </div>
+                   </div>
+                 )}
+                 {appState === AppState.FETCHING && (
+                   <div className="flex flex-col items-center justify-center h-full bg-white/40 dark:bg-slate-800/40 rounded-3xl border border-dashed border-slate-300">
+                      <RefreshCw className="w-10 h-10 animate-spin text-teal-500 mb-4" />
+                      <p className="font-medium animate-pulse">Personalizing your session...</p>
+                   </div>
+                 )}
+                 {appState === AppState.ACTIVE && exerciseQueue.length > 0 && (
+                  <ExerciseCard 
+                    exercise={exerciseQueue[currentExerciseIndex]} 
+                    stepIndex={currentExerciseIndex}
+                    totalSteps={exerciseQueue.length}
+                    onNext={handleNextExercise} 
+                    onClose={() => {
+                      document.title = originalTitleRef.current;
+                      setFavicon("/favicon-default.png");
+                      setAppState(AppState.IDLE);
+                      lastTickRef.current = Date.now();
+                      setSecondsUntilNext(settings.intervalSeconds);
+                    }}
+                  />
+                )}
+              </div>
+              
+              {/* Column 2: Body Analysis */}
+              <div className="h-full">
+                 <BodyMap 
+                    history={history}
+                    hydrationCount={hydrationCount}
+                    lastHydrationTime={lastHydrationTime}
+                    onLogHydration={() => setHydrationTimestamps(p => [...p, Date.now()])}
+                    onStartSession={async (cat) => {
+  setAppState(AppState.FETCHING);
 
-            {/* Column 3: Wellness Stats & Wisdom (Horizontal line removed) */}
-            <div className="h-full flex flex-col gap-6">
-               <div className="flex-1 bg-white/60 dark:bg-slate-800/40 rounded-3xl border border-slate-200 dark:border-slate-700/50 backdrop-blur-sm overflow-hidden flex flex-col shadow-sm">
-                  {/* Seamless Header - removed border-b */}
-                  <div className="p-4 pb-0 flex items-center gap-2">
-                    <Info className="w-4 h-4 text-teal-500" />
-                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">WELLNESS STATS & WISDOM</span>
-                  </div>
-                  <div className="flex-1 overflow-y-auto">
-                    <StatsPanel history={history} exerciseLog={exerciseLog} />
-                  </div>
-               </div>
-            </div>
-         </div>
-      </main>
+  const res = await generateSession(
+    5,
+    [cat],
+    settings.workEnvironment,
+    getExcludedExerciseNames()
+  );
 
-      <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} settings={settings} onSave={handleSaveSettings} />
-    </div>
+  // ✅ HARD FILTER: only the selected body part
+  const onlyThisPart = res.exercises.filter(
+    ex => ex.category === cat
+  );
+
+  // ✅ HARD CAP: exactly 3 exercises
+  setExerciseQueue(onlyThisPart.slice(0, 3));
+  setCurrentExerciseIndex(0);
+  setAppState(AppState.ACTIVE);
+}}
+
+                    onStartFullBodySession={async () => {
+                      celebrationShownRef.current = false;
+                      setAppState(AppState.FETCHING);
+                      // Request 15 minutes for Full Body Reset
+                      const res = await generateSession(15, [...ALL_BODY_PARTS], settings.workEnvironment, getExcludedExerciseNames());
+                      setExerciseQueue(res.exercises);
+                      setCurrentExerciseIndex(0);
+                      setAppState(AppState.ACTIVE);
+                    }}
+                  />
+              </div>
+
+              {/* Column 3: Wellness Stats & Wisdom */}
+              <div className="h-full flex flex-col gap-6">
+                 <div className="flex-1 bg-white/60 dark:bg-slate-800/40 rounded-3xl border border-slate-200 dark:border-slate-700/50 backdrop-blur-sm overflow-hidden flex flex-col shadow-sm">
+                    <div className="p-4 pb-0 flex items-center gap-2">
+                      <Info className="w-4 h-4 text-teal-500" />
+                      <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">WELLNESS STATS & WISDOM</span>
+                    </div>
+                    <div className="flex-1 overflow-y-auto">
+                      <StatsPanel history={history} exerciseLog={exerciseLog} />
+                    </div>
+                 </div>
+              </div>
+           </div>
+        </main>
+
+        <SettingsModal 
+          isOpen={isSettingsOpen} 
+          onClose={() => setIsSettingsOpen(false)} 
+          settings={settings} 
+          onSave={handleSaveSettings} 
+        />
+      </div>
+    </>
   );
 }
 

@@ -270,6 +270,19 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, s
             </div>
           )}
         </div>
+<div className="mt-6 pt-4 border-t border-slate-200 dark:border-slate-700">
+  <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+    <span className="font-semibold">Wellness & Safety Notice:</span> This app is
+    designed to support regular movement and general wellness. It is not a
+    medical device and does not replace professional medical advice, diagnosis,
+    or treatment.
+  </p>
+  <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mt-2">
+    Please listen to your body and only perform exercises that feel comfortable.
+    If you have any health conditions, injuries, or concerns, consider checking
+    with a qualified healthcare professional before starting.
+  </p>
+</div>
 
         <div className="mt-8">
           <button 
@@ -286,3 +299,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, s
     </div>
   );
 };
+
+
+

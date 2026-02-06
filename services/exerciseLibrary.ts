@@ -1,4 +1,3 @@
-
 import { Exercise } from '../types';
 
 export const EXERCISE_LIBRARY: Exercise[] = [
@@ -6,9 +5,13 @@ export const EXERCISE_LIBRARY: Exercise[] = [
   {
     name: "20-20-20 Reset",
     durationSeconds: 60,
-    instructions: ["Find an object at least 20 feet away.", "Focus on it intensely for 20 seconds.", "Blink rapidly for the remaining time to lubricate eyes."],
-    benefits: "Resets the ciliary muscle of the eye.",
-    prevention: "Reduces digital eye strain and prevents myopia progression.",
+    instructions: [
+      "Sit comfortably and look away from your screen.",
+      "Focus on an object at least 20 feet away for 20 seconds.",
+      "Blink slowly and fully for the remaining time."
+    ],
+    benefits: "Relaxes the eye focusing muscles.",
+    prevention: "Mitigates Computer Vision Syndrome (CVS) and accommodative spasms from prolonged near-work.",
     category: "Eyes",
     posture: "Seated",
     isStandingRecommended: true,
@@ -17,9 +20,27 @@ export const EXERCISE_LIBRARY: Exercise[] = [
   {
     name: "Ocular Palming",
     durationSeconds: 60,
-    instructions: ["Rub your hands together to create heat.", "Gently cup your palms over closed eyes.", "Breathe deeply and enjoy the total darkness."],
-    benefits: "Soothes the optic nerve and relaxes facial muscles.",
-    prevention: "Prevents stress-induced eye twitching and tension headaches.",
+    instructions: [
+      "Rub your hands together to warm your palms.",
+      "Gently place palms over closed eyes without pressing.",
+      "Breathe slowly and relax in the darkness."
+    ],
+    benefits: "Calms the eyes and facial muscles.",
+    prevention: "Reduces visual fatigue and sensory overstimulation affecting the optic nerve.",
+    category: "Eyes",
+    posture: "Seated",
+    environmentCompatibility: "Both"
+  },
+  {
+    name: "Near–Far Focus Shift",
+    durationSeconds: 60,
+    instructions: [
+      "Hold your thumb about 6 inches from your face.",
+      "Focus on your thumb for 5 seconds.",
+      "Shift focus to something far away and repeat."
+    ],
+    benefits: "Improves eye muscle coordination.",
+    prevention: "Enhances ciliary muscle flexibility to prevent accommodative lag and focus fatigue.",
     category: "Eyes",
     posture: "Seated",
     environmentCompatibility: "Both"
@@ -27,11 +48,15 @@ export const EXERCISE_LIBRARY: Exercise[] = [
 
   // --- NECK ---
   {
-    name: "Cervical Chin Tucks",
+    name: "Chin Tucks",
     durationSeconds: 60,
-    instructions: ["Sit tall and look straight ahead.", "Gently pull your chin straight back like making a double-chin.", "Hold for 3 seconds, release and repeat."],
-    benefits: "Strengthens deep neck flexors.",
-    prevention: "Prevents 'Tech Neck' and upper cervical disc compression.",
+    instructions: [
+      "Sit or stand tall with eyes facing forward.",
+      "Gently pull your chin straight back without tilting your head.",
+      "Hold for 3 seconds, relax, and repeat."
+    ],
+    benefits: "Activates deep neck stabilizing muscles.",
+    prevention: "Corrects 'Forward Head Posture' to prevent cervical disc compression and upper crossed syndrome.",
     category: "Neck",
     posture: "Seated",
     isStandingRecommended: true,
@@ -40,11 +65,30 @@ export const EXERCISE_LIBRARY: Exercise[] = [
   {
     name: "Levator Scapulae Stretch",
     durationSeconds: 60,
-    instructions: ["Sit on your right hand to anchor the shoulder.", "Turn head 45 degrees left and look down at your armpit.", "Gently assist with your left hand for 30s, then switch sides."],
-    benefits: "Releases the muscle that shrugs your shoulders under stress.",
-    prevention: "Prevents chronic neck stiffness and tension headaches.",
+    instructions: [
+      "Sit on one hand to keep the shoulder relaxed.",
+      "Turn your head slightly and look down toward your armpit.",
+      "Gently assist with the opposite hand. Switch sides after 30 seconds."
+    ],
+    benefits: "Releases tension in the upper neck and shoulder area.",
+    prevention: "Relieves mechanical neck pain and prevents tension-type headaches (TTH).",
     category: "Neck",
     posture: "Seated",
+    environmentCompatibility: "Both"
+  },
+  {
+    name: "Neck Side Glides",
+    durationSeconds: 60,
+    instructions: [
+      "Sit upright and look straight ahead.",
+      "Slowly slide your head toward one shoulder without tilting.",
+      "Return to center and alternate sides."
+    ],
+    benefits: "Improves neck joint mobility.",
+    prevention: "Promotes cervical facet joint lubrication and prevents segmental stiffness.",
+    category: "Neck",
+    posture: "Seated",
+    isStandingRecommended: true,
     environmentCompatibility: "Both"
   },
 
@@ -52,9 +96,13 @@ export const EXERCISE_LIBRARY: Exercise[] = [
   {
     name: "Scapular Squeezes",
     durationSeconds: 60,
-    instructions: ["Imagine a pencil between your shoulder blades.", "Squeeze the blades together and down away from ears.", "Hold for 5 seconds and repeat."],
-    benefits: "Activates the rhomboids and mid-trapezius.",
-    prevention: "Corrects rounded shoulders and prevents impingement syndrome.",
+    instructions: [
+      "Sit or stand tall with arms relaxed by your sides.",
+      "Squeeze your shoulder blades gently together and down.",
+      "Hold for 5 seconds and repeat."
+    ],
+    benefits: "Activates upper-back postural muscles.",
+    prevention: "Counteracts scapular dyskinesis and reduces the risk of shoulder impingement syndrome.",
     category: "Shoulders",
     posture: "Seated",
     isStandingRecommended: true,
@@ -63,32 +111,72 @@ export const EXERCISE_LIBRARY: Exercise[] = [
   {
     name: "Desk Wall Slides",
     durationSeconds: 60,
-    instructions: ["Stand with back against a wall or sit tall.", "Form a 'W' shape with arms, elbows and wrists against the wall.", "Slowly slide arms up into a 'Y' and back down."],
-    benefits: "Improves shoulder mobility and thoracic extension.",
-    prevention: "Prevents rotator cuff tears and frozen shoulder.",
+    instructions: [
+      "Stand with your back against a wall or sit very upright.",
+      "Form a ‘W’ with your arms against the wall.",
+      "Slowly slide arms upward into a ‘Y’ and return."
+    ],
+    benefits: "Improves shoulder mobility and posture.",
+    prevention: "Enhances thoracic extension and prevents adhesive capsulitis (frozen shoulder) symptoms.",
     category: "Shoulders",
     posture: "Standing",
     environmentCompatibility: "Home"
   },
+  {
+    name: "Arm Circles Reset",
+    durationSeconds: 60,
+    instructions: [
+      "Extend your arms out to the sides.",
+      "Make small forward circles for 30 seconds.",
+      "Reverse direction for the remaining time."
+    ],
+    benefits: "Lubricates the shoulder joints.",
+    prevention: "Maintains glenohumeral joint range of motion and prevents bursitis.",
+    category: "Shoulders",
+    posture: "Standing",
+    environmentCompatibility: "Both"
+  },
 
   // --- WRISTS ---
   {
-    name: "The Prayer Stretch",
+    name: "Prayer Stretch",
     durationSeconds: 60,
-    instructions: ["Place palms together in front of your chest.", "Slowly lower hands toward your waist while keeping palms flat.", "Hold for 10s, release, and repeat."],
-    benefits: "Stretches the wrist flexors.",
-    prevention: "Prevents Carpal Tunnel Syndrome and tendonitis.",
+    instructions: [
+      "Place palms together in front of your chest.",
+      "Lower hands slowly toward your waist while keeping palms together.",
+      "Hold briefly, relax, and repeat."
+    ],
+    benefits: "Stretches the wrist and forearm muscles.",
+    prevention: "Prevents Carpal Tunnel Syndrome by relieving pressure on the median nerve.",
     category: "Wrists",
     posture: "Seated",
     isStandingRecommended: true,
     environmentCompatibility: "Both"
   },
   {
-    name: "Nerve Gliding",
+    name: "Wrist Nerve Glides",
     durationSeconds: 60,
-    instructions: ["Extend arm forward, palm up.", "Slowly tilt hand down toward floor, then back toward shoulder.", "Repeat with gentle, fluid motions. Switch arms at 30s."],
-    benefits: "Flushes the median nerve through the carpal tunnel.",
-    prevention: "Reduces numbness and tingling in fingers.",
+    instructions: [
+      "Extend one arm forward with palm facing up.",
+      "Slowly bend the wrist down and then back up.",
+      "Move gently and switch arms after 30 seconds."
+    ],
+    benefits: "Encourages smooth nerve movement.",
+    prevention: "Reduces neural tension and prevents repetitive strain injuries (RSI) in the forearm.",
+    category: "Wrists",
+    posture: "Seated",
+    environmentCompatibility: "Both"
+  },
+  {
+    name: "Wrist Circles",
+    durationSeconds: 60,
+    instructions: [
+      "Extend arms forward with relaxed fists.",
+      "Rotate wrists slowly in one direction.",
+      "Switch direction after 30 seconds."
+    ],
+    benefits: "Improves wrist joint circulation.",
+    prevention: "Minimizes synovial fluid stagnation to prevent wrist tenosynovitis.",
     category: "Wrists",
     posture: "Seated",
     environmentCompatibility: "Both"
@@ -98,58 +186,120 @@ export const EXERCISE_LIBRARY: Exercise[] = [
   {
     name: "Seated Spinal Twist",
     durationSeconds: 60,
-    instructions: ["Sit sideways on your chair.", "Use the chair back to gently twist your torso.", "Hold for 30s per side. Breathe into the twist."],
-    benefits: "Mobilizes the thoracic spine and improves digestion.",
-    prevention: "Prevents lower back stiffness and disc degeneration.",
+    instructions: [
+      "Sit upright and place one hand on the chair back.",
+      "Gently twist your torso while keeping hips forward.",
+      "Hold briefly and switch sides."
+    ],
+    benefits: "Improves spinal mobility.",
+    prevention: "Promotes intervertebral disc hydration and prevents rotational stiffness in the thoracic spine.",
     category: "Back",
     posture: "Seated",
     environmentCompatibility: "Both"
   },
   {
-    name: "Seated Cat-Cow",
+    name: "Seated Cat–Cow",
     durationSeconds: 60,
-    instructions: ["Place hands on knees.", "Inhale: Arch back and look up (Cow).", "Exhale: Round spine and tuck chin (Cat). Flow with breath."],
-    benefits: "Moves every vertebrae in the spine.",
-    prevention: "Maintains spinal fluid flow and prevents postural slump.",
+    instructions: [
+      "Sit tall with hands on knees.",
+      "Inhale and gently arch your back.",
+      "Exhale and round your spine. Move with your breath."
+    ],
+    benefits: "Moves the spine through a healthy range.",
+    prevention: "Helps prevent lumbar disc bulging and eases generalized myofascial back pain.",
     category: "Back",
     posture: "Seated",
     isStandingRecommended: true,
     environmentCompatibility: "Both"
+  },
+  {
+    name: "Standing Back Extension",
+    durationSeconds: 60,
+    instructions: [
+      "Stand with hands on your lower back.",
+      "Gently lean backward while keeping knees straight.",
+      "Hold briefly and repeat slowly."
+    ],
+    benefits: "Counters prolonged forward bending.",
+    prevention: "Neutralizes lumbar flexion pressure to reduce the risk of disc herniation and sciatica.",
+    category: "Back",
+    posture: "Standing",
+    environmentCompatibility: "Home"
   },
 
   // --- HIPS ---
   {
     name: "Seated Figure Four",
     durationSeconds: 60,
-    instructions: ["Cross right ankle over left knee.", "Flex the right foot and sit very tall.", "Gently lean forward with a flat back. 30s per side."],
-    benefits: "Stretches the piriformis and glutes.",
-    prevention: "Prevents sciatica and lower back referred pain.",
+    instructions: [
+      "Cross one ankle over the opposite knee.",
+      "Sit tall and gently lean forward.",
+      "Switch sides after 30 seconds."
+    ],
+    benefits: "Stretches hip and glute muscles.",
+    prevention: "Prevents Piriformis Syndrome and associated pseudo-sciatica symptoms.",
     category: "Hips",
     posture: "Seated",
     environmentCompatibility: "Both"
   },
   {
-    name: "Office Hip Flexor Release",
+    name: "Hip Flexor Release",
     durationSeconds: 60,
-    instructions: ["Stand up and take a small step back with one foot.", "Tuck your tailbone and squeeze the glute of the back leg.", "Feel a gentle stretch in the front of the hip. 30s per side."],
-    benefits: "Lengthens the psoas muscle.",
-    prevention: "Corrects pelvic tilt caused by hours of sitting.",
+    instructions: [
+      "Stand and step one foot slightly back.",
+      "Tuck your hips and squeeze the back-side glute.",
+      "Hold briefly and switch sides."
+    ],
+    benefits: "Lengthens muscles shortened by sitting.",
+    prevention: "Reduces anterior pelvic tilt and prevents compensatory lumbar lordosis.",
     category: "Hips",
     posture: "Standing",
     isStandingRecommended: true,
     environmentCompatibility: "Both"
+  },
+  {
+    name: "Marching in Place",
+    durationSeconds: 60,
+    instructions: [
+      "Stand tall with arms relaxed.",
+      "Lift one knee toward your chest.",
+      "Lower and alternate legs at a steady pace."
+    ],
+    benefits: "Activates hips and improves circulation.",
+    prevention: "Improves lymphatic drainage and prevents hip capsule tightness from prolonged inactivity.",
+    category: "Hips",
+    posture: "Standing",
+    environmentCompatibility: "Home"
   },
 
   // --- KNEES ---
   {
     name: "Seated Leg Extensions",
     durationSeconds: 60,
-    instructions: ["Sit back in your chair.", "Straighten one leg and flex your toes toward you.", "Hold for 3s, lower slowly. Switch legs every 5 reps."],
-    benefits: "Strengthens the VMO (inner quad) for patellar tracking.",
-    prevention: "Prevents 'Runner's Knee' and patellofemoral pain.",
+    instructions: [
+      "Sit upright with feet flat on the floor.",
+      "Straighten one leg and hold briefly.",
+      "Lower slowly and alternate legs."
+    ],
+    benefits: "Strengthens thigh muscles.",
+    prevention: "Supports patellofemoral tracking to prevent 'Runner’s Knee' symptoms in sedentary workers.",
     category: "Knees",
     posture: "Seated",
     isStandingRecommended: true,
+    environmentCompatibility: "Both"
+  },
+  {
+    name: "Sit-to-Stand",
+    durationSeconds: 60,
+    instructions: [
+      "Sit near the edge of your chair.",
+      "Stand up without using your hands.",
+      "Sit back down slowly and repeat."
+    ],
+    benefits: "Strengthens legs and hips.",
+    prevention: "Preserves functional lower-chain mobility and prevents quadriceps atrophy.",
+    category: "Knees",
+    posture: "Standing",
     environmentCompatibility: "Both"
   },
 
@@ -157,20 +307,28 @@ export const EXERCISE_LIBRARY: Exercise[] = [
   {
     name: "Ankle Alphabet",
     durationSeconds: 60,
-    instructions: ["Lift one foot off the floor.", "Use your big toe to draw the letters A-Z in the air.", "Switch feet after the letter M."],
-    benefits: "Mobilizes the ankle in all planes of motion.",
-    prevention: "Prevents ankle instability and improves circulation.",
+    instructions: [
+      "Lift one foot off the floor.",
+      "Trace the letters of the alphabet with your toes.",
+      "Switch feet halfway through."
+    ],
+    benefits: "Moves the ankle through multiple directions.",
+    prevention: "Reduces the risk of peripheral edema and maintains talocrural joint mobility.",
     category: "Ankles",
     posture: "Seated",
     isStandingRecommended: true,
     environmentCompatibility: "Both"
   },
   {
-    name: "Seated Calf Pumps",
+    name: "Calf Pumps",
     durationSeconds: 60,
-    instructions: ["Keep your toes on the floor and lift your heels high.", "Then keep your heels down and lift your toes high.", "Alternate rapidly for 60 seconds."],
-    benefits: "Activates the 'Second Heart' (calf muscles).",
-    prevention: "Prevents deep vein thrombosis (DVT) and lower leg swelling.",
+    instructions: [
+      "Keep toes on the floor and lift your heels.",
+      "Lower heels and lift toes upward.",
+      "Alternate at a steady pace."
+    ],
+    benefits: "Activates lower leg muscles.",
+    prevention: "Promotes venous return to prevent Deep Vein Thrombosis (DVT) and varicose veins.",
     category: "Ankles",
     posture: "Seated",
     isStandingRecommended: true,
@@ -181,9 +339,13 @@ export const EXERCISE_LIBRARY: Exercise[] = [
   {
     name: "Ulnar Nerve Glide",
     durationSeconds: 60,
-    instructions: ["Make an 'OK' sign with fingers.", "Flip the hand upside down and place over your eye like a mask.", "Slowly point elbow away. 30s per side."],
-    benefits: "Releases the nerve that causes 'funny bone' pain.",
-    prevention: "Prevents Cubital Tunnel Syndrome.",
+    instructions: [
+      "Make an ‘OK’ sign with your fingers.",
+      "Rotate the hand and bring it gently toward your face.",
+      "Move slowly and switch sides halfway."
+    ],
+    benefits: "Encourages smooth elbow and nerve movement.",
+    prevention: "Prevents Cubital Tunnel Syndrome and ulnar nerve entrapment at the elbow.",
     category: "Elbows",
     posture: "Seated",
     isStandingRecommended: true,

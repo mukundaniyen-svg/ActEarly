@@ -125,9 +125,82 @@ const generateLocalSession = (
   excludeNames: string[]
 ): Exercise[] => {
   let filtered = EXERCISE_LIBRARY.filter(ex =>
-    ex.environmentCompatibility === 'Both' ||
-    ex.environmentCompatibility === workEnvironment
-  );
+  ex.environmentCompatibility === 'Both' ||
+  ex.environmentCompatibility === workEnvironment
+);
+
+  // 2️⃣ Declare session BEFORE use
+
+const FULL_BODY_TOTAL = 15;
+const isFullBodyMode =
+  prioritizedBodyParts.length === ALL_BODY_PARTS.length;
+
+  const BASE_TARGET_COUNTS: Record<string, number> = {
+  Neck: 2,
+  Shoulders: 2,
+  Back: 2,
+  Hips: 2,
+  Knees: 2,
+
+  Wrists: 1,
+  Ankles: 1,
+  Elbows: 1,
+  Eyes: 1
+};
+
+const singleParts = ['Wrists', 'Ankles', 'Elbows', 'Eyes'];
+const boostedPart =
+  singleParts[Math.floor(Math.random() * singleParts.length)];
+
+BASE_TARGET_COUNTS[boostedPart] += 1;
+
+const currentCounts: Record<string, number> = {};
+
+
+// Parts that usually get only 1 exercise
+const SINGLE_EXERCISE_PARTS = ['Wrists', 'Ankles', 'Elbows', 'Eyes'];
+
+// Parts that always get 2 exercises
+const DOUBLE_EXERCISE_PARTS = [
+  'Neck',
+  'Shoulders',
+  'Back',
+  'Hips',
+  'Knees'
+];
+
+const session: Exercise[] = [];
+const uniqueParts = [...new Set(prioritizedBodyParts)];
+const MAX_EXERCISES = 5; 
+
+// ✅ FIX: If Home, strongly prefer standing exercises
+for (const part of uniqueParts.slice(0, MAX_EXERCISES)) {
+
+  const allForPart = filtered.filter(ex => ex.category === part);
+
+  if (allForPart.length === 0) continue;
+
+  let candidates = allForPart;
+
+  // ✅ HARD standing preference at Home — PER BODY PART
+  if (workEnvironment === 'Home') {
+    const standingForPart = allForPart.filter(
+      ex => ex.posture === 'Standing'
+    );
+
+    if (standingForPart.length > 0) {
+      candidates = standingForPart;
+    }
+  }
+
+  // pick one exercise from candidates
+  const chosen =
+    candidates[Math.floor(Math.random() * candidates.length)];
+
+  session.push(chosen);
+}
+
+
 
   if (excludeNames.length > 0) {
     const freshOnes = filtered.filter(ex => !excludeNames.includes(ex.name));
@@ -135,7 +208,6 @@ const generateLocalSession = (
   }
 
   const partsToFocus = [...(prioritizedBodyParts.length > 0 ? prioritizedBodyParts : ALL_BODY_PARTS)];
-  const session: Exercise[] = [];
   const shuffledParts = [...partsToFocus].sort(() => Math.random() - 0.5);
 
   let standingCount = 0;
@@ -181,5 +253,72 @@ const generateLocalSession = (
     return categoryOrder.indexOf(a.category as any) - categoryOrder.indexOf(b.category as any);
   });
 
-  return session;
+if (isFullBodyMode) {
+  const BASE_TARGET_COUNTS: Record<string, number> = {
+    Neck: 2,
+    Shoulders: 2,
+    Back: 2,
+    Hips: 2,
+    Knees: 2,
+
+    Wrists: 1,
+    Ankles: 1,
+    Elbows: 1,
+    Eyes: 1
+  };
+
+  // Randomly boost ONE low-risk part
+  const singleParts = ['Wrists', 'Ankles', 'Elbows', 'Eyes'];
+  const boostedPart =
+    singleParts[Math.floor(Math.random() * singleParts.length)];
+  BASE_TARGET_COUNTS[boostedPart] += 1;
+
+  const session: Exercise[] = [];
+  const usedNames = new Set<string>();
+
+  // Controlled selection: never exceed target counts
+  for (const part of Object.keys(BASE_TARGET_COUNTS)) {
+    const target = BASE_TARGET_COUNTS[part];
+    let count = 0;
+
+    const pool = EXERCISE_LIBRARY.filter(
+      ex =>
+        ex.category === part &&
+        (ex.environmentCompatibility === 'Both' ||
+         ex.environmentCompatibility === workEnvironment)
+    );
+
+    for (const ex of pool) {
+      if (count >= target) break;
+      if (usedNames.has(ex.name)) continue;
+
+      session.push(ex);
+      usedNames.add(ex.name);
+      count++;
+    }
+  }
+
+  // Final safety cap
+  // Backfill if any slots missing
+if (session.length < 15) {
+  const fallback = EXERCISE_LIBRARY.filter(
+    ex =>
+      !session.some(s => s.name === ex.name) &&
+      (ex.environmentCompatibility === 'Both' ||
+        ex.environmentCompatibility === workEnvironment)
+  );
+
+  while (session.length < 15 && fallback.length > 0) {
+    session.push(fallback.shift()!);
+  }
+}
+
+return session.slice(0, 15);
+
+}
+
+
+return session.slice(0, 5); // normal sessions only
+
+
 };
