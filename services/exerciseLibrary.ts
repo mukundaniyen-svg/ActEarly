@@ -52,7 +52,8 @@ export const EXERCISE_LIBRARY: Exercise[] = [
     durationSeconds: 60,
     instructions: [
       "Sit or stand tall with eyes facing forward.",
-      "Gently pull your chin straight back without tilting your head.",
+      "Imagine a drawer is open in your neck.",
+      "Slide your chin straight back to close it. You should create a double chin.",
       "Hold for 3 seconds, relax, and repeat."
     ],
     benefits: "Activates deep neck stabilizing muscles.",
@@ -67,8 +68,8 @@ export const EXERCISE_LIBRARY: Exercise[] = [
     durationSeconds: 60,
     instructions: [
       "Sit on one hand to keep the shoulder relaxed.",
-      "Turn your head slightly and look down toward your armpit.",
-      "Gently assist with the opposite hand. Switch sides after 30 seconds."
+      "Turn your head 45 degrees towards the other side and look down toward your armpit.",
+      "Gently assist with the free hand. Switch sides after 30 seconds."
     ],
     benefits: "Releases tension in the upper neck and shoulder area.",
     prevention: "Relieves mechanical neck pain and prevents tension-type headaches (TTH).",
@@ -77,12 +78,13 @@ export const EXERCISE_LIBRARY: Exercise[] = [
     environmentCompatibility: "Both"
   },
   {
-    name: "Neck Side Glides",
+    name: "Neck Side Stretch",
     durationSeconds: 60,
     instructions: [
-      "Sit upright and look straight ahead.",
-      "Slowly slide your head toward one shoulder without tilting.",
-      "Return to center and alternate sides."
+      "Sit on your right hand to 'anchor' your right shoulder down.",
+      "Slowly tilt your left ear toward your left shoulder.",
+      "Do not lift your left shoulder to meet your ear; keep it low.",
+      "Hold for 30 seconds, feeling the long pull on the side of your neck, then switch."
     ],
     benefits: "Improves neck joint mobility.",
     prevention: "Promotes cervical facet joint lubrication and prevents segmental stiffness.",
@@ -97,9 +99,10 @@ export const EXERCISE_LIBRARY: Exercise[] = [
     name: "Scapular Squeezes",
     durationSeconds: 60,
     instructions: [
-      "Sit or stand tall with arms relaxed by your sides.",
-      "Squeeze your shoulder blades gently together and down.",
-      "Hold for 5 seconds and repeat."
+      "Sit or stand tall with arms hang heavy at your sides.",
+      "Imagine there is a pencil sitting vertically between your shoulder blades.",
+      "Try to pinch that pencil by pulling your shoulders back and down (away from your ears).",
+      "Hold for 5 seconds, relax and repeat."
     ],
     benefits: "Activates upper-back postural muscles.",
     prevention: "Counteracts scapular dyskinesis and reduces the risk of shoulder impingement syndrome.",
@@ -112,9 +115,10 @@ export const EXERCISE_LIBRARY: Exercise[] = [
     name: "Desk Wall Slides",
     durationSeconds: 60,
     instructions: [
-      "Stand with your back against a wall or sit very upright.",
-      "Form a ‘W’ with your arms against the wall.",
-      "Slowly slide arms upward into a ‘Y’ and return."
+      "Stand with your back, head, glutes and shoulders flat against a wall.",
+      "Place your arms against the wall in a  'W' shape (elbows at shoulder height).",
+      "Slowly slide your hands upward into a 'Y' shape, keeping your elbows and the back of your hands touching the wall the whole time.",
+      "Slide back down to the 'W' and repeat."
     ],
     benefits: "Improves shoulder mobility and posture.",
     prevention: "Enhances thoracic extension and prevents adhesive capsulitis (frozen shoulder) symptoms.",
@@ -157,9 +161,10 @@ export const EXERCISE_LIBRARY: Exercise[] = [
     name: "Wrist Nerve Glides",
     durationSeconds: 60,
     instructions: [
-      "Extend one arm forward with palm facing up.",
-      "Slowly bend the wrist down and then back up.",
-      "Move gently and switch arms after 30 seconds."
+      "Extend one arm straight out in front of you, palm facing the floor.",
+      "Make a 'Stop' sign: Pull your fingers back toward your face so your palm faces forward.",
+      "The Tilt: Gently tilt your head away from your extended arm (ear to opposite shoulder).",
+      "The Release: Lower your hand and bring your head back to center. Repeat smoothly."
     ],
     benefits: "Encourages smooth nerve movement.",
     prevention: "Reduces neural tension and prevents repetitive strain injuries (RSI) in the forearm.",
@@ -187,9 +192,10 @@ export const EXERCISE_LIBRARY: Exercise[] = [
     name: "Seated Spinal Twist",
     durationSeconds: 60,
     instructions: [
-      "Sit upright and place one hand on the chair back.",
-      "Gently twist your torso while keeping hips forward.",
-      "Hold briefly and switch sides."
+      "Sit at the edge of your chair with feet flat - no back slouching.",
+      "Place your right hand on your left knee and your left hand on the back of the chair",
+      "Twist from your belly button first, then chest, then look over your left shoulder.",
+      "Hold for 5 seconds, then switch sides."
     ],
     benefits: "Improves spinal mobility.",
     prevention: "Promotes intervertebral disc hydration and prevents rotational stiffness in the thoracic spine.",
@@ -202,8 +208,9 @@ export const EXERCISE_LIBRARY: Exercise[] = [
     durationSeconds: 60,
     instructions: [
       "Sit tall with hands on knees.",
-      "Inhale and gently arch your back.",
-      "Exhale and round your spine. Move with your breath."
+      "Inhale: look up and puff your chest out, gently arch your back.",
+      "Exhale: look down and slouch deeply, tuck your tailbone round your spine.",
+      "Move with your breath."
     ],
     benefits: "Moves the spine through a healthy range.",
     prevention: "Helps prevent lumbar disc bulging and eases generalized myofascial back pain.",
@@ -246,9 +253,10 @@ export const EXERCISE_LIBRARY: Exercise[] = [
     name: "Hip Flexor Release",
     durationSeconds: 60,
     instructions: [
-      "Stand and step one foot slightly back.",
-      "Tuck your hips and squeeze the back-side glute.",
-      "Hold briefly and switch sides."
+      "Stand up and take a small step back with your right leg (like a shallow lunge).",
+      "Tuck your tailbone under (like a dog tucking its tail). You should feel a pull in the front of your right hip.",
+      "Squeeze your right glute (butt muscle) to increase the stretch.",
+      "Hold 30 seconds then switch legs."
     ],
     benefits: "Lengthens muscles shortened by sitting.",
     prevention: "Reduces anterior pelvic tilt and prevents compensatory lumbar lordosis.",
@@ -302,6 +310,21 @@ export const EXERCISE_LIBRARY: Exercise[] = [
     posture: "Standing",
     environmentCompatibility: "Both"
   },
+  {
+    name: "Seated Knee Hug",
+    durationSeconds: 60,
+    instructions: [
+      "Sit near the front edge of your chair.",
+      "Lift one knee and wrap both arms around it, pulling it toward your chest.",
+      "Keep your back tall—don't lean back into the chair.",
+      "Hold for 30 seconds, then switch legs."
+    ],
+    benefits: "Gently stretches the knee joint and lower back.",
+    prevention: "Relieves joint pressure from keeping knees bent at 90 degrees for too long.",
+    category: "Knees",
+    posture: "Seated",
+    environmentCompatibility: "Both"
+  },
 
   // --- ANKLES ---
   {
@@ -334,18 +357,67 @@ export const EXERCISE_LIBRARY: Exercise[] = [
     isStandingRecommended: true,
     environmentCompatibility: "Both"
   },
+  {
+    name: "Heel-Toe Rocks",
+    durationSeconds: 60,
+    instructions: [
+      "Stand tall (hold your desk for balance if needed).",
+      "Rock back onto your heels to lift your toes off the floor.",
+      "Rock forward onto your toes to lift your heels off the floor.",
+      "Repeat the rocking motion at a steady, rhythmic pace."
+    ],
+    benefits: "Strengthens the stabilizing muscles around the ankle.",
+    prevention: "Improves balance and prevents ankle stiffness/weakness from inactivity.",
+    category: "Ankles",
+    posture: "Standing",
+    isStandingRecommended: true,
+    environmentCompatibility: "Both"
+  },
 
   // --- ELBOWS ---
   {
     name: "Ulnar Nerve Glide",
     durationSeconds: 60,
     instructions: [
-      "Make an ‘OK’ sign with your fingers.",
-      "Rotate the hand and bring it gently toward your face.",
-      "Move slowly and switch sides halfway."
+      "Make an ‘OK’ sign with your fingers (touch thumb and index finger).",
+      "Rotate your hand toward your face and place the 'O' over your eye like a monocle.",
+      "Your other three fingers should point down toward your jaw/neck, and your elbow should be pointed out to the side.",
+      "Hold for 2 seconds, move the hand away, and repeat."
     ],
     benefits: "Encourages smooth elbow and nerve movement.",
     prevention: "Prevents Cubital Tunnel Syndrome and ulnar nerve entrapment at the elbow.",
+    category: "Elbows",
+    posture: "Seated",
+    isStandingRecommended: true,
+    environmentCompatibility: "Both"
+  },
+  {
+    name: "Radial Nerve Glide",
+    durationSeconds: 60,
+    instructions: [
+      "Drop one arm to your side, palm facing your thigh.",
+      "Rotate your whole arm inward so your palm faces behind you.",
+      "Flex your wrist so your palm points up toward the ceiling.",
+      "Tilt your head away from this arm (ear to opposite shoulder) and repeat smoothly."
+    ],
+    benefits: "Releases tension along the top of the forearm and elbow.",
+    prevention: "Prevents 'Tennis Elbow' symptoms and radial nerve entrapment.",
+    category: "Elbows",
+    posture: "Seated",
+    isStandingRecommended: true,
+    environmentCompatibility: "Both"
+  },
+  {
+    name: "Forearm Reset",
+    durationSeconds: 60,
+    instructions: [
+      "Extend one arm forward with the palm facing down.",
+      "Use your other hand to gently pull your fingers down toward the floor.",
+      "Hold for 15 seconds, then flip the hand (palm up) and pull fingers back.",
+      "Switch arms after 30 seconds."
+    ],
+    benefits: "Stretches the muscles that control the elbow and wrist.",
+    prevention: "Reduces the risk of lateral and medial epicondylitis (tendon strain).",
     category: "Elbows",
     posture: "Seated",
     isStandingRecommended: true,
