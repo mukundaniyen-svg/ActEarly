@@ -193,8 +193,9 @@ export const EXERCISE_LIBRARY: Exercise[] = [
     durationSeconds: 60,
     instructions: [
       "Sit at the edge of your chair with feet flat - no back slouching.",
-      "Place your right hand on your left knee and your left hand on the back of the chair",
-      "Twist from your belly button first, then chest, then look over your left shoulder.",
+      "Place your right hand on your left knee and gently exhale as you rotate on your left side.",
+      "Twist from your belly button first, then chest, then look over your left shoulder, avoid yanking.",
+      "Stop immediately if you feel any sharp pinching or radiation in your lower back.",
       "Hold for 5 seconds, then switch sides."
     ],
     benefits: "Improves spinal mobility.",
@@ -241,6 +242,8 @@ export const EXERCISE_LIBRARY: Exercise[] = [
     instructions: [
       "Cross one ankle over the opposite knee.",
       "Sit tall and gently lean forward.",
+      "Lean in only until you feel a 'satisfied' stretch in the outer hip",
+      "If you feel sciatica-like tingling down your leg, stop immediately.",
       "Switch sides after 30 seconds."
     ],
     benefits: "Stretches hip and glute muscles.",

@@ -1,3 +1,6 @@
+import Onboarding from "./components/Onboarding";
+import { STORAGE_KEYS } from "./utils/storage";
+
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   Settings as SettingsIcon,
@@ -62,6 +65,7 @@ const setFavicon = (href: string) => {
 };
 
 function App() {
+  const [isOnboarded, setIsOnboarded] = useState(null);
   const originalTitleRef = useRef(document.title);
   const [settings, setSettings] = useState<Settings>(DEFAULT_PREFERENCES);
   const [appState, setAppState] = useState<AppState>(AppState.IDLE);
@@ -70,9 +74,19 @@ function App() {
 
   // Persistence
   useEffect(() => {
-    const saved = loadPreferences();
-    if (saved) setSettings(saved);
-  }, []);
+
+  const saved = loadPreferences();
+  if (saved) setSettings(saved);
+
+  const completed = localStorage.getItem("actearly_onboarding_complete");
+
+  if (completed === "true") {
+    setIsOnboarded(true);
+  } else {
+    setIsOnboarded(false);
+  }
+
+}, []);
 
   const handleSaveSettings = (newSettings: Settings) => {
     setSettings(newSettings);
@@ -327,7 +341,13 @@ setExerciseQueue(result.exercises.slice(0, 5));
       </div>
     );
   };
+if (isOnboarded === null) {
+  return null;
+}
 
+if (!isOnboarded) {
+  return <Onboarding onComplete={() => setIsOnboarded(true)} />;
+}
   return (
     <>
       <Celebration 
