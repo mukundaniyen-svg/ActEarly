@@ -67,7 +67,43 @@ const setFavicon = (href: string) => {
 function App() {
   const [isOnboarded, setIsOnboarded] = useState(null);
   const originalTitleRef = useRef(document.title);
-  const [settings, setSettings] = useState<Settings>(DEFAULT_PREFERENCES);
+  const getInitialSettings = (): Settings => {
+  try {
+    const stored = localStorage.getItem("userSettings");
+
+    if (!stored) return DEFAULT_PREFERENCES;
+
+    const parsed = JSON.parse(stored);
+
+    return {
+      ...DEFAULT_PREFERENCES,
+
+      // 🔑 map onboarding → app settings
+      intervalSeconds: (parsed.workDuration || 25) * 60,
+      sessionDurationMinutes: parsed.breakDuration || 5,
+      workEnvironment: parsed.workspace || "Office",
+    };
+  } catch (e) {
+    console.error("Failed to load settings", e);
+    return DEFAULT_PREFERENCES;
+  }
+};
+  const [settings, setSettings] = useState<Settings>(getInitialSettings);
+  useEffect(() => {
+  const stored = localStorage.getItem("userSettings");
+
+  if (stored) {
+    const parsed = JSON.parse(stored);
+
+    setSettings({
+      ...DEFAULT_PREFERENCES,
+      intervalSeconds: (parsed.workDuration || 25) * 60,
+      sessionDurationMinutes: parsed.breakDuration || 5,
+      workEnvironment: parsed.workspace || "Office",
+    });
+  }
+}, []);
+  console.log("INITIAL SETTINGS:", settings);
   const [appState, setAppState] = useState<AppState>(AppState.IDLE);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const celebrationShownRef = useRef(false);
@@ -106,6 +142,9 @@ function App() {
 
   // Timer Engine
   const [secondsUntilNext, setSecondsUntilNext] = useState(settings.intervalSeconds);
+  useEffect(() => {
+  setSecondsUntilNext(settings.intervalSeconds);
+}, [settings.intervalSeconds]);
   const [isPaused, setIsPaused] = useState(false);
   const timerRef = useRef<number | null>(null);
   const lastTickRef = useRef<number>(Date.now());
@@ -213,7 +252,6 @@ setExerciseQueue(result.exercises.slice(0, 5));
       setAppState(AppState.ACTIVE);
     } catch {
       setAppState(AppState.IDLE);
-      setSecondsUntilNext(settings.intervalSeconds);
     }
   };
 
@@ -248,7 +286,6 @@ setExerciseQueue(result.exercises.slice(0, 5));
     ]);
 
     setAppState(AppState.IDLE);
-    setSecondsUntilNext(settings.intervalSeconds);
   };
 
   /* -------------------- UI: TIMER CARD -------------------- */
@@ -344,10 +381,23 @@ setExerciseQueue(result.exercises.slice(0, 5));
 if (isOnboarded === null) {
   return null;
 }
-
 if (!isOnboarded) {
-  return <Onboarding onComplete={() => setIsOnboarded(true)} />;
+  return (
+    <Onboarding
+      onComplete={(newSettings) => {
+        setSettings({
+          ...DEFAULT_PREFERENCES,
+          intervalSeconds: (newSettings.workDuration || 25) * 60,
+          sessionDurationMinutes: newSettings.breakDuration || 5,
+          workEnvironment: newSettings.workspace || "Office",
+        });
+
+        setIsOnboarded(true);
+      }}
+    />
+  );
 }
+
   return (
     <>
       <Celebration 
@@ -401,7 +451,6 @@ if (!isOnboarded) {
                             setFavicon("/favicon-default.png");
                             setAppState(AppState.IDLE);
                             lastTickRef.current = Date.now();
-                            setSecondsUntilNext(settings.intervalSeconds);
                           }}
                           className="flex-1 py-3 border border-slate-200 rounded-xl text-sm font-medium"
                         >
@@ -427,7 +476,6 @@ if (!isOnboarded) {
                       setFavicon("/favicon-default.png");
                       setAppState(AppState.IDLE);
                       lastTickRef.current = Date.now();
-                      setSecondsUntilNext(settings.intervalSeconds);
                     }}
                   />
                 )}

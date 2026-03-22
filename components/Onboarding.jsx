@@ -9,21 +9,33 @@ export default function Onboarding({ onComplete }) {
   const [workspace, setWorkspace] = useState("Office");
   const [acceptedDisclaimer, setAcceptedDisclaimer] = useState(false);
 
-  const handleStart = () => {
+const handleStart = () => {
+  const [workMinutes, breakMinutes] = workBreak.split("-").map(Number);
 
-    const workMinutes = parseInt(workBreak.split("-")[0]);
-    const intervalSeconds = workMinutes * 60;
-
-    try {
-      localStorage.setItem(STORAGE_KEYS.REMINDER_FREQUENCY, intervalSeconds);
-      localStorage.setItem("actearly_workspace", workspace);
-      localStorage.setItem(STORAGE_KEYS.ONBOARDING_COMPLETE, "true");
-    } catch (e) {
-      console.error("localStorage failed", e);
-    }
-
-    onComplete();
+  const settings = {
+    workDuration: workMinutes,
+    breakDuration: breakMinutes,
+    workspace: workspace,
+    disclaimerAccepted: acceptedDisclaimer
   };
+
+  try {
+    // 🔑 THIS IS THE MISSING PIECE
+    localStorage.setItem("userSettings", JSON.stringify(settings));
+
+    // optional (keep if used elsewhere)
+    localStorage.setItem(
+      STORAGE_KEYS.REMINDER_FREQUENCY,
+      workMinutes * 60
+    );
+
+    localStorage.setItem(STORAGE_KEYS.ONBOARDING_COMPLETE, "true");
+  } catch (e) {
+    console.error("localStorage failed", e);
+  }
+
+  onComplete(settings);
+};
 
   return (
     <div
