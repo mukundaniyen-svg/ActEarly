@@ -71,25 +71,32 @@ const setFavicon = (href: string) => {
 function App() {
 
   useEffect(() => {
+    console.log("App mounted");
+
     const initAnalytics = async () => {
+
+    console.log("Init analytics started");
+
       const analytics = await getFirebaseAnalytics();
+
+    console.log("Analytics object:", analytics);
+
       const userId = getOrCreateUserId();
+
+    console.log("User ID from function:", userId);
+
 
       console.log("User ID:", userId);
 
       if (analytics) {
-      // ✅ Link user to analytics
-      import("firebase/analytics").then(({ setUserId, logEvent }) => {
-        setUserId(analytics, userId);
-
-        logEvent(analytics, "app_open", {
-          user_id: userId,
-        });
-
-        console.log("Analytics event fired with user_id");
-      });
+      setUserId(analytics, userId);
+      logEvent(analytics, "app_open", { user_id: userId });
+      console.log("Event fired with user_id");
+    } else {
+      console.log("Analytics not available");
     }
   };
+
 
 
     initAnalytics();
