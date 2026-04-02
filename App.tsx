@@ -190,6 +190,33 @@ function App() {
   const timerRef = useRef<number | null>(null);
   const lastTickRef = useRef<number>(Date.now());
 
+
+const handleTogglePause = async () => {
+    console.log("BUTTON CLICKED"); 
+  // 👉 ONLY start session when going from paused → play
+  if (isPaused) {
+    const analytics = await getFirebaseAnalytics();
+    const userId = getOrCreateUserId();
+
+    const newSessionId = startSession();
+    setSessionId(newSessionId);
+
+    console.log("Session started:", newSessionId);
+
+    if (analytics) {
+      logEvent(analytics, "session_start", {
+        user_id: userId,
+        session_id: newSessionId,
+        work_duration: settings.intervalSeconds,
+      });
+    }
+  }
+
+  // toggle pause/play
+  setIsPaused(!isPaused);
+};
+
+
   useEffect(() => {
     if (settings.theme === "Dark") document.documentElement.classList.add("dark");
     else document.documentElement.classList.remove("dark");
@@ -339,30 +366,6 @@ setExerciseQueue(result.exercises.slice(0, 5));
     const isFocusMode = secondsUntilNext > totalSeconds + 60;
 
 
-const handleTogglePause = async () => {
-    console.log("BUTTON CLICKED"); 
-  // 👉 ONLY start session when going from paused → play
-  if (isPaused) {
-    const analytics = await getFirebaseAnalytics();
-    const userId = getOrCreateUserId();
-
-    const newSessionId = startSession();
-    setSessionId(newSessionId);
-
-    console.log("Session started:", newSessionId);
-
-    if (analytics) {
-      logEvent(analytics, "session_start", {
-        user_id: userId,
-        session_id: newSessionId,
-        work_duration: settings.intervalSeconds,
-      });
-    }
-  }
-
-  // toggle pause/play
-  setIsPaused(!isPaused);
-};
     return (
       <div className="flex flex-col items-center justify-between p-6 bg-white/60 dark:bg-slate-800/40 rounded-3xl border border-slate-200 dark:border-slate-700/50 backdrop-blur-sm h-full shadow-lg relative overflow-hidden">
         <div className="w-full flex flex-col items-center mb-6">
