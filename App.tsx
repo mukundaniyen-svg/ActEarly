@@ -37,6 +37,7 @@ import { StatsPanel } from "./components/StatsPanel";
 
 import { logEvent } from "firebase/analytics";
 import { getFirebaseAnalytics } from "./src/lib/firebase";
+import { getOrCreateUserId } from "./src/lib/user";
 
 
 /* ------------------------------------------------------------------ */
@@ -74,17 +75,24 @@ function App() {
   useEffect(() => {
     const initAnalytics = async () => {
       const analytics = await getFirebaseAnalytics();
+      const userId = getOrCreateUserId();
 
-      console.log("Analytics object:", analytics); 
+      console.log("User ID:", userId);
 
       if (analytics) {
-        logEvent(analytics, "app_open");
-        console.log("Analytics event fired");
-      } else {
-      console.log("Analytics NOT supported");
-    }
+      // ✅ Link user to analytics
+      import("firebase/analytics").then(({ setUserId, logEvent }) => {
+        setUserId(analytics, userId);
 
-    };
+        logEvent(analytics, "app_open", {
+          user_id: userId,
+        });
+
+        console.log("Analytics event fired with user_id");
+      });
+    }
+  };
+
 
     initAnalytics();
   }, []);
