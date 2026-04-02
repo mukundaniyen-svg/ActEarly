@@ -34,11 +34,9 @@ import { BodyMap } from "./components/BodyMap";
 import { Celebration } from "./components/Celebration";
 import { StatsPanel } from "./components/StatsPanel";
 
-
-import { logEvent } from "firebase/analytics";
 import { getFirebaseAnalytics } from "./src/lib/firebase";
 import { getOrCreateUserId } from "./src/lib/user";
-
+import { logEvent, setUserId } from "firebase/analytics";
 
 /* ------------------------------------------------------------------ */
 /* LOGO                                                               */
