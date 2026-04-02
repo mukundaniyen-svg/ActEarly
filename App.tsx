@@ -34,6 +34,11 @@ import { BodyMap } from "./components/BodyMap";
 import { Celebration } from "./components/Celebration";
 import { StatsPanel } from "./components/StatsPanel";
 
+
+import { logEvent } from "firebase/analytics";
+//import { getFirebaseAnalytics } from "./src/lib/firebase";
+
+
 /* ------------------------------------------------------------------ */
 /* LOGO                                                               */
 /* ------------------------------------------------------------------ */
@@ -65,6 +70,26 @@ const setFavicon = (href: string) => {
 };
 
 function App() {
+
+  useEffect(() => {
+    const initAnalytics = async () => {
+      const analytics = await getFirebaseAnalytics();
+
+      console.log("Analytics object:", analytics); 
+
+      if (analytics) {
+        logEvent(analytics, "app_open");
+        console.log("Analytics event fired");
+      } else {
+      console.log("Analytics NOT supported");
+    }
+
+    };
+
+    initAnalytics();
+  }, []);
+
+
   const [isOnboarded, setIsOnboarded] = useState(null);
   const originalTitleRef = useRef(document.title);
   const getInitialSettings = (): Settings => {
