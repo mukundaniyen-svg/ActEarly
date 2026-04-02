@@ -37,6 +37,8 @@ import { StatsPanel } from "./components/StatsPanel";
 import { getFirebaseAnalytics } from "./src/lib/firebase";
 import { getOrCreateUserId } from "./src/lib/user";
 import { logEvent, setUserId } from "firebase/analytics";
+import { startSession } from "./src/lib/session";
+
 
 /* ------------------------------------------------------------------ */
 /* LOGO                                                               */
@@ -184,6 +186,7 @@ function App() {
   setSecondsUntilNext(settings.intervalSeconds);
 }, [settings.intervalSeconds]);
   const [isPaused, setIsPaused] = useState(false);
+  const [sessionId, setSessionId] = useState(null);
   const timerRef = useRef<number | null>(null);
   const lastTickRef = useRef<number>(Date.now());
 
@@ -335,6 +338,30 @@ setExerciseQueue(result.exercises.slice(0, 5));
     const isLessThanMinute = secondsUntilNext < 60;
     const isFocusMode = secondsUntilNext > totalSeconds + 60;
 
+
+const handleTogglePause = async () => {
+  // 👉 ONLY start session when going from paused → play
+  if (isPaused) {
+    const analytics = await getFirebaseAnalytics();
+    const userId = getOrCreateUserId();
+
+    const newSessionId = startSession();
+    setSessionId(newSessionId);
+
+    console.log("Session started:", newSessionId);
+
+    if (analytics) {
+      logEvent(analytics, "session_start", {
+        user_id: userId,
+        session_id: newSessionId,
+        work_duration: settings.intervalSeconds,
+      });
+    }
+  }
+
+  // toggle pause/play
+  setIsPaused(!isPaused);
+};
     return (
       <div className="flex flex-col items-center justify-between p-6 bg-white/60 dark:bg-slate-800/40 rounded-3xl border border-slate-200 dark:border-slate-700/50 backdrop-blur-sm h-full shadow-lg relative overflow-hidden">
         <div className="w-full flex flex-col items-center mb-6">
@@ -391,7 +418,7 @@ setExerciseQueue(result.exercises.slice(0, 5));
             </span>
             <span className="text-xs text-slate-500 dark:text-slate-600 mt-2 font-medium">Until next break</span>
           </div>
-          <button onClick={() => setIsPaused(!isPaused)} className="absolute bottom-0 right-4 p-3 bg-white dark:bg-slate-800 rounded-full shadow-xl border border-slate-100 dark:border-slate-700 hover:scale-110 transition-transform">
+          <button onClick={handleTogglePause} className="absolute bottom-0 right-4 p-3 bg-white dark:bg-slate-800 rounded-full shadow-xl border border-slate-100 dark:border-slate-700 hover:scale-110 transition-transform">
             {isPaused ? <Play className="w-6 h-6 fill-current text-slate-400" /> : <Pause className="w-6 h-6 fill-current text-teal-600" />}
           </button>
         </div>
