@@ -36,7 +36,7 @@ import { StatsPanel } from "./components/StatsPanel";
 
 
 import { logEvent } from "firebase/analytics";
-//import { getFirebaseAnalytics } from "./src/lib/firebase";
+import { getFirebaseAnalytics } from "./src/lib/firebase";
 
 
 /* ------------------------------------------------------------------ */
