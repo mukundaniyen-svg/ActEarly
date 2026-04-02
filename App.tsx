@@ -340,6 +340,7 @@ setExerciseQueue(result.exercises.slice(0, 5));
 
 
 const handleTogglePause = async () => {
+    console.log("BUTTON CLICKED"); 
   // 👉 ONLY start session when going from paused → play
   if (isPaused) {
     const analytics = await getFirebaseAnalytics();
