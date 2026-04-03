@@ -19,12 +19,22 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
-export const getFirebaseAnalytics = async () => {
-  const supported = await isSupported();
-  if (supported) {
-    return getAnalytics(app);
-  }
-  return null;
-};
 
-export { app };
+let analyticsInstance = null;
+
+export const getFirebaseAnalytics = async () => {
+  if (analyticsInstance) return analyticsInstance;
+
+  const supported = await isSupported();
+
+  if (!supported) {
+    console.log("Firebase analytics not supported");
+    return null;
+  }
+
+  analyticsInstance = getAnalytics(app);
+
+  console.log("✅ Firebase Analytics Initialized", analyticsInstance);
+
+  return analyticsInstance;
+};
