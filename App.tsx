@@ -37,7 +37,7 @@ import { StatsPanel } from "./components/StatsPanel";
 import { getFirebaseAnalytics } from "./src/lib/firebase";
 import { getOrCreateUserId } from "./src/lib/user";
 import { logEvent, setUserId } from "firebase/analytics";
-import { startSession } from "./src/lib/session";
+import { useExerciseAnalytics } from "./src/analytics/useExerciseAnalytics";
 
 
 /* ------------------------------------------------------------------ */
@@ -71,24 +71,29 @@ const setFavicon = (href: string) => {
 };
 
 function App() {
+  const {
+  trackExerciseStart,
+  trackExerciseComplete,
+  trackSessionComplete,
+} = useExerciseAnalytics();
 
   useEffect(() => {
-    console.log("App mounted");
+    //console.log("App mounted");
 
     const initAnalytics = async () => {
 
-    console.log("Init analytics started");
+    //console.log("Init analytics started");
 
       const analytics = await getFirebaseAnalytics();
 
-    console.log("Analytics object:", analytics);
+    //console.log("Analytics object:", analytics);
 
       const userId = getOrCreateUserId();
 
-    console.log("User ID from function:", userId);
+    //console.log("User ID from function:", userId);
 
 
-      console.log("User ID:", userId);
+      //console.log("User ID:", userId);
 
       if (analytics) {
       setUserId(analytics, userId);
@@ -191,31 +196,9 @@ function App() {
   const lastTickRef = useRef<number>(Date.now());
 
 
-const handleTogglePause = async () => {
-    console.log("BUTTON CLICKED"); 
-  // 👉 ONLY start session when going from paused → play
-  if (isPaused) {
-    const analytics = await getFirebaseAnalytics();
-    const userId = getOrCreateUserId();
-
-    const newSessionId = startSession();
-    setSessionId(newSessionId);
-
-    console.log("Session started:", newSessionId);
-
-    if (analytics) {
-      logEvent(analytics, "session_start", {
-        user_id: userId,
-        session_id: newSessionId,
-        work_duration: settings.intervalSeconds,
-      });
-    }
-  }
-
-  // toggle pause/play
+const handleTogglePause = () => {
   setIsPaused(!isPaused);
 };
-
 
   useEffect(() => {
     if (settings.theme === "Dark") document.documentElement.classList.add("dark");
@@ -313,48 +296,73 @@ const result = await generateSession(
 );
 
 // Still cap to 5 exercises as safety
-setExerciseQueue(result.exercises.slice(0, 5));
+const exercises = result.exercises.slice(0, 5);
 
+setExerciseQueue(exercises);
+setCurrentExerciseIndex(0);
+setAppState(AppState.ACTIVE);
 
-      setCurrentExerciseIndex(0);
-      setAppState(AppState.ACTIVE);
+// ✅ ADD THIS
+setTimeout(() => {
+  if (exercises[0]) {
+    trackExerciseStart(exercises[0]);
+  }
+}, 0);
     } catch {
       setAppState(AppState.IDLE);
     }
   };
 
-  const handleNextExercise = (skipped: boolean, exercise: Exercise) => {
-    if (!skipped) {
-      completedExercisesRef.current.push(exercise);
-      setHistory(prev => ({
-        ...prev,
-        [exercise.category]: Date.now()
-      }));
-    }
+const handleNextExercise = (skipped: boolean, exercise: Exercise) => {
+  // ✅ Track completion (only if not skipped)
+  if (!skipped) {
+    trackExerciseComplete(exercise);
 
-    if (currentExerciseIndex < exerciseQueue.length - 1) {
-      setCurrentExerciseIndex(p => p + 1);
-      return;
-    }
+    completedExercisesRef.current.push(exercise);
 
-    const now = Date.now();
-    const newHistory = { ...history };
-    completedExercisesRef.current.forEach(ex => {
-      newHistory[ex.category] = now;
-    });
-    setHistory(newHistory);
-
-    setExerciseLog(prev => [
+    setHistory(prev => ({
       ...prev,
-      ...completedExercisesRef.current.map(ex => ({
-        name: ex.name,
-        category: ex.category,
-        timestamp: now
-      }))
-    ]);
+      [exercise.category]: Date.now()
+    }));
+  }
 
-    setAppState(AppState.IDLE);
-  };
+  const isLast = currentExerciseIndex >= exerciseQueue.length - 1;
+
+  if (!isLast) {
+    const nextExercise = exerciseQueue[currentExerciseIndex + 1];
+
+    // ✅ Track next start
+    if (nextExercise) {
+      trackExerciseStart(nextExercise);
+    }
+
+    setCurrentExerciseIndex(p => p + 1);
+    return;
+  }
+
+  // ✅ SESSION COMPLETE
+  trackSessionComplete();
+
+  const now = Date.now();
+  const newHistory = { ...history };
+
+  completedExercisesRef.current.forEach(ex => {
+    newHistory[ex.category] = now;
+  });
+
+  setHistory(newHistory);
+
+  setExerciseLog(prev => [
+    ...prev,
+    ...completedExercisesRef.current.map(ex => ({
+      name: ex.name,
+      category: ex.category,
+      timestamp: now
+    }))
+  ]);
+
+  setAppState(AppState.IDLE);
+};
 
   /* -------------------- UI: TIMER CARD -------------------- */
 
@@ -422,7 +430,8 @@ setExerciseQueue(result.exercises.slice(0, 5));
             </span>
             <span className="text-xs text-slate-500 dark:text-slate-600 mt-2 font-medium">Until next break</span>
           </div>
-          <button onClick={handleTogglePause} className="absolute bottom-0 right-4 p-3 bg-white dark:bg-slate-800 rounded-full shadow-xl border border-slate-100 dark:border-slate-700 hover:scale-110 transition-transform">
+          <button onClick={handleTogglePause}
+            className="absolute bottom-0 right-4 z-50 p-3 bg-white dark:bg-slate-800 rounded-full shadow-xl border border-slate-100 dark:border-slate-700 hover:scale-110 transition-transform">
             {isPaused ? <Play className="w-6 h-6 fill-current text-slate-400" /> : <Pause className="w-6 h-6 fill-current text-teal-600" />}
           </button>
         </div>
@@ -573,9 +582,18 @@ if (!isOnboarded) {
   );
 
   // ✅ HARD CAP: exactly 3 exercises
-  setExerciseQueue(onlyThisPart.slice(0, 3));
-  setCurrentExerciseIndex(0);
-  setAppState(AppState.ACTIVE);
+const exercises = onlyThisPart.slice(0, 3);
+
+setExerciseQueue(exercises);
+setCurrentExerciseIndex(0);
+setAppState(AppState.ACTIVE);
+
+// ✅ ADD
+setTimeout(() => {
+  if (exercises[0]) {
+    trackExerciseStart(exercises[0]);
+  }
+}, 0);
 }}
 
                     onStartFullBodySession={async () => {
@@ -583,9 +601,18 @@ if (!isOnboarded) {
                       setAppState(AppState.FETCHING);
                       // Request 15 minutes for Full Body Reset
                       const res = await generateSession(15, [...ALL_BODY_PARTS], settings.workEnvironment, getExcludedExerciseNames());
-                      setExerciseQueue(res.exercises);
-                      setCurrentExerciseIndex(0);
-                      setAppState(AppState.ACTIVE);
+                      const exercises = res.exercises;
+
+setExerciseQueue(exercises);
+setCurrentExerciseIndex(0);
+setAppState(AppState.ACTIVE);
+
+// ✅ ADD
+setTimeout(() => {
+  if (exercises[0]) {
+    trackExerciseStart(exercises[0]);
+  }
+}, 0);
                     }}
                   />
               </div>
