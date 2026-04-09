@@ -190,6 +190,11 @@ function App() {
   useEffect(() => {
   setSecondsUntilNext(settings.intervalSeconds);
 }, [settings.intervalSeconds]);
+
+ const resetTimer = () => {
+  setSecondsUntilNext(settings.intervalSeconds);
+  lastTickRef.current = Date.now();
+};
   const [isPaused, setIsPaused] = useState(false);
   const [sessionId, setSessionId] = useState(null);
   const timerRef = useRef<number | null>(null);
@@ -250,19 +255,28 @@ const handleTogglePause = () => {
   // Timer Tick
   const tick = useCallback(() => {
     if (appState !== AppState.IDLE || isPaused) {
-      lastTickRef.current = Date.now();
+    
       return;
     }
     const delta = (Date.now() - lastTickRef.current) / 1000;
     lastTickRef.current = Date.now();
     setSecondsUntilNext(prev => {
-      if (prev - delta <= 0) {
-        setAppState(AppState.NOTIFYING);
-        document.title = "(1) ActEarly • Time to move";
-        setFavicon("/favicon-alert.png");
-        if (settings.soundEnabled) new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3').play().catch(() => {});
-        return 0;
-      }
+      if (prev <= 0) return 0; // 🛑 guard: already finished
+
+if (prev - delta <= 0) {
+  setAppState(AppState.NOTIFYING);
+
+  document.title = "(1) ActEarly • Time to move";
+  setFavicon("/favicon-alert.png");
+
+  if (settings.soundEnabled) {
+    new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3')
+      .play()
+      .catch(() => {});
+  }
+
+  return 0;
+}
       return prev - delta;
     });
   }, [appState, isPaused, settings.soundEnabled, settings.intervalSeconds]);
@@ -362,6 +376,7 @@ const handleNextExercise = (skipped: boolean, exercise: Exercise) => {
   ]);
 
   setAppState(AppState.IDLE);
+  resetTimer();
 };
 
   /* -------------------- UI: TIMER CARD -------------------- */
@@ -447,7 +462,10 @@ const handleNextExercise = (skipped: boolean, exercise: Exercise) => {
           </button>
           
           <button 
-            onClick={() => setSecondsUntilNext(2)} 
+            onClick={() => {
+  setSecondsUntilNext(0);
+  lastTickRef.current = Date.now();
+}}
             className="text-[10px] font-bold text-slate-300 hover:text-slate-500 dark:text-slate-700 dark:hover:text-slate-500 uppercase tracking-widest transition-colors mb-2"
           >
             Dev: Skip to end
@@ -517,6 +535,7 @@ if (!isOnboarded) {
                             setAppState(AppState.IDLE);
                             lastTickRef.current = Date.now();
                             setSecondsUntilNext(300);
+                            lastTickRef.current = Date.now();
                           }}
                           className="flex-1 py-3 border border-slate-200 rounded-xl text-sm font-medium"
                         >
@@ -528,7 +547,7 @@ if (!isOnboarded) {
                             document.title = originalTitleRef.current;
                             setFavicon("/favicon-default.png");
                             setAppState(AppState.IDLE);
-                            lastTickRef.current = Date.now();
+                            resetTimer();
                           }}
                           className="flex-1 py-3 border border-slate-200 rounded-xl text-sm font-medium"
                         >
@@ -553,7 +572,7 @@ if (!isOnboarded) {
                       document.title = originalTitleRef.current;
                       setFavicon("/favicon-default.png");
                       setAppState(AppState.IDLE);
-                      lastTickRef.current = Date.now();
+                      resetTimer();
                     }}
                   />
                 )}
