@@ -463,8 +463,16 @@ const handleNextExercise = (skipped: boolean, exercise: Exercise) => {
           
           <button 
             onClick={() => {
-  setSecondsUntilNext(0);
-  lastTickRef.current = Date.now();
+  setAppState(AppState.NOTIFYING);
+
+  document.title = "(1) ActEarly • Time to move";
+  setFavicon("/favicon-alert.png");
+
+  if (settings.soundEnabled) {
+    new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3')
+      .play()
+      .catch(() => {});
+  }
 }}
             className="text-[10px] font-bold text-slate-300 hover:text-slate-500 dark:text-slate-700 dark:hover:text-slate-500 uppercase tracking-widest transition-colors mb-2"
           >
